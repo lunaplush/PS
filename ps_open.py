@@ -25,7 +25,7 @@ from sklearn import svm
 from sklearn.cross_validation import train_test_split,cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, precision_recall_fscore_support
 
 #%%
 file = "PS 2007_Р.xlsx"
@@ -169,7 +169,7 @@ for v in CLs.values():
 y_pred = classifier.predict(X_train_scaled)    
 print(classification_report(y_train, y_pred, target_names = s))
 print(classification_report(y_test, classifier.predict(X_test_scaled), target_names = s))
-
+#print(precision_recall_fscore_support(y_train, y_pred))
 Y_res = y_train.copy()
 Y_res["pred"] = y_pred
 #%%

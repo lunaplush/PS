@@ -83,6 +83,7 @@ def data_processing(PS):
     Crit11 = np.logical_and(X["BNZ"] < 5, Crit10)
     X = X[Crit11]
     Y = Y[Crit11]
+#Заполнение пустых значений
     for cl in CLs:
         x = X[Y["class_num"] == cl]
         means = (np.max(x) - np.min(x))/2 +np.min(x)
@@ -95,8 +96,7 @@ def open_ps_2007():
     df_cols = xfile.parse(sheetname = "columns", header = 3)
     columns = df_cols.columns   
     PS = xfile.parse(sheetname = "PetroSpec07", skiprows = [0,1,2], parse_cols = "A:V", names = columns )
-    data_processing(PS)
-   
+    data_processing(PS)   
     
     
     return (X,Y,CLs)
