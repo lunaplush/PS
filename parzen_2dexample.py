@@ -6,11 +6,13 @@ Created on Sun Jun  4 20:56:39 2017
 """
 # https://sebastianraschka.com/Articles/2014_kernel_density_est.html part3
 import numpy as np
+import operator
+
 import matplotlib.pyplot as plt
 from matplotlib.mlab import bivariate_normal
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.stats import multivariate_normal
-
+#%%
 # Generate 10,000 random 2D-patterns
 mu_vec = np.array([0,0])
 cov_mat = np.array([[1,0],[0,1]])
@@ -99,8 +101,35 @@ cov = np.eye(2)
 mlab_gauss = bivariate_normal(x,x)
 mlab_gauss = float(mlab_gauss[0]) # because mlab returns an np.array
 impl_gauss = pdf_multivariate_gauss(x, mu, cov)
+#st_gauss = multivariate_normal.pdf(x,mean = mu,cov = cov)
 print('mlab_gauss:', mlab_gauss)
 print('impl_gauss:', impl_gauss)
-print('st_gauss', st_gauss)
+#print('st_gauss', st_gauss)
 assert(mlab_gauss == impl_gauss),\
         'Implementations of the mult. Gaussian return different pdfs'
+#%%
+print('Predict p(x) at the center [0,0]: ')
+
+print('h = 0.1 ---> p(x) =', parzen_window_est(x_2Dgauss, h=0.1, center=[0, 0])  )
+print('h = 0.3 ---> p(x) =',parzen_window_est( x_2Dgauss, h=0.3, center=[0, 0]))
+print('h = 0.6 ---> p(x) =',parzen_window_est(x_2Dgauss, h=0.6, center=[0, 0]) )
+print('h = 1 ---> p(x) =',parzen_window_est( x_2Dgauss, h=1, center=[0, 0])  ) 
+
+#%%
+
+# generate a range of 400 window widths between 0 < h < 1
+h_range = np.linspace(0.001, 1, 400)
+
+# calculate the actual density at the center [0, 0]
+mu = np.array([[0],[0]])
+cov = np.eye(2)
+actual_pdf_val = pdf_multivariate_gauss(np.array([[0],[0]]), mu, cov)
+
+# get a list of the differnces (|estimate-actual|) for different window widths
+parzen_estimates = [np.abs(parzen_window_est(x_2Dgauss, h=i, center=[0, 0])
+               - actual_pdf_val) for i in h_range]
+
+# get the window width for which |estimate-actual| is closest to 0
+min_index, min_value = min(enumerate(parzen_estimates), key=operator.itemgetter(1))
+
+print('Optimal window width for this data set: ', h_range[min_index])      

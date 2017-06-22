@@ -67,22 +67,33 @@ def data_processing(PS):
      
     for col in features:    
         X[col] = X[col].apply(to_float)
-    
-    Crit1 =  np.logical_and(X['ro']>650, X['ro']< 900)
-    Crit2 = np.logical_or(Crit1, X['ro'].isnull())
-    Crit3 = np.logical_and(X["TLL"]  < 40, Crit2)
-    Crit4 = np.logical_and(X["ETBE"] < 2, Crit3)
-    Crit5 = np.logical_and(X["DIPE"] < 2, Crit4)
-    Crit6 = np.logical_and(X["TAME"] < 2, Crit5)
-    Crit7 = np.logical_and(X["AROMA"] < 90, Crit6)
-    Crit8 = np.logical_and(X["RON"] <130, Crit7)
-    Crit9 = np.logical_and(X["MON"] < 130, Crit8)
-    Crit81 = np.logical_and(X["RON"] >60, Crit9)
-    Crit91 = np.logical_and(X["MON"] > 60, Crit81)
-    Crit10 = np.logical_and(X["OLF"] < 50, Crit91)
-    Crit11 = np.logical_and(X["BNZ"] < 5, Crit10)
-    X = X[Crit11]
-    Y = Y[Crit11]
+    borders = {'ro':[650,780], 'RON':[70,130],'MON':[76,130],'OLF':[-1,30],'ALK':[30,90], \
+              'AROMA':[-1,56], 'BNZ': [0,6], 'KIS':[0,20],'TLL':[-1,20],'MASS':[-1,50], \
+              'METANOL':[-1,1.1],'ETANOL':[-1,4],'MTBE':[-1,20],'ETBE':[-1,2],'TAME':[-1,2],'DIPE':[-1,2],\
+              'TBS':[-1,2]}
+    i = 0    
+    for (k,v)  in borders.items():
+        Crit = np.logical_and(X[k]>v[0],X[k]<v[1]) 
+        if i == 0:
+            Crit_o = Crit.copy()
+            i = 1
+        else:
+            Crit_o = np.logical_and(Crit_o,Crit)
+#    Crit1 =  np.logical_and(X['ro']>650, X['ro']< 900)
+#    Crit2 = np.logical_or(Crit1, X['ro'].isnull())
+#    Crit3 = np.logical_and(X["TLL"]  < 20, Crit2)
+#    Crit4 = np.logical_and(X["ETBE"] < 2, Crit3)
+#    Crit5 = np.logical_and(X["DIPE"] < 2, Crit4)
+#    Crit6 = np.logical_and(X["TAME"] < 2, Crit5)
+#    Crit7 = np.logical_and(X["AROMA"] < 90, Crit6)
+#    Crit8 = np.logical_and(X["RON"] <130, Crit7)
+#    Crit9 = np.logical_and(X["MON"] < 130, Crit8)
+#    Crit81 = np.logical_and(X["RON"] >60, Crit9)
+#    Crit91 = np.logical_and(X["MON"] > 60, Crit81)
+#    Crit10 = np.logical_and(X["OLF"] < 50, Crit91)
+#    Crit11 = np.logical_and(X["BNZ"] < 5, Crit10)
+    X = X[Crit_o]
+    Y = Y[Crit_o]
 #Заполнение пустых значений
     for cl in CLs:
         x = X[Y["class_num"] == cl]

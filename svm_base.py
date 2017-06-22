@@ -25,7 +25,8 @@ X2,Y2,CLs2 = ps_data.open_ps_2009()
 sns.set()
 #add hue
 #sns.pairplot(X1).savefig("pairplot_2007.png")
-#sns.pairplot(X2).savefig("pairplot_2009.png")
+
+sns.pairplot(X2).savefig("pairplot_2009.png")
 #%%
 
 X = X1
@@ -103,12 +104,13 @@ test_data_report = classification_report(y_test, classifier.predict(X_test_scale
 
 file = open('svm_base_report.txt','w')
 file.write('#'*30)
-file.write('\t\t\t2007\n\n')
+file.write('\n\t\t\t2007\n\n')
 file.write('\t\t\t TRAIN \n')
 file.write(train_data_report)
 
 file.write('\n\t\t\t TEST \n')
 file.write(test_data_report) 
+file.close()
 Y_res = y_train.copy()
 Y_res["pred"] = y_pred
 #%%
