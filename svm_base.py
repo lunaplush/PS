@@ -26,7 +26,7 @@ sns.set()
 #add hue
 #sns.pairplot(X1).savefig("pairplot_2007.png")
 
-sns.pairplot(X2).savefig("pairplot_2009.png")
+#sns.pairplot(X2).savefig("pairplot_2009.png")
 #%%
 
 X = X1
@@ -63,9 +63,11 @@ for i in a:
 
 
 #%%
-params = {'kernel':'rbf',"C":512.0,"gamma":0.015625}
-#params = {'C': 8192.0, 'gamma': 0.0078125}
-#params = {'gamma': 0.000244140625, 'C': 8192.0}
+params = {'kernel':'rbf',"C":512.0,"gamma":0.015625} ## с этими параметрами 
+#                работает лучше, чем к полученными позже функцией best params
+#params = {'C': 8192.0, 'gamma': 0.0078125} # на сильно зашумленных данных
+#params = {'gamma': 0.000244140625, 'C': 8192.0} №на сильно зашумленных данных
+params = {'kernel':'rbf',"C": 8,"gamma":0.125, "probability":True}
 def best_params():
     
     cv = skl.cross_validation.StratifiedShuffleSplit(y_train, n_iter = 10, test_size = 0.2, random_state = 0)
@@ -81,8 +83,8 @@ def best_params():
     #print(grid_cv.best_params_)
     #print(grid_cv.grid_scores_[:10])
     return grid_cv.best_params_
-params_func = best_params()
-print(params_func)
+#params_func = best_params()
+
 #%%
 
 #classifier = SVC(**params_func)#params)
@@ -105,6 +107,7 @@ test_data_report = classification_report(y_test, classifier.predict(X_test_scale
 file = open('svm_base_report.txt','w')
 file.write('#'*30)
 file.write('\n\t\t\t2007\n\n')
+file.write('C : %f, gamma : %f' % (params['C'],params['gamma']))
 file.write('\t\t\t TRAIN \n')
 file.write(train_data_report)
 
