@@ -10,28 +10,34 @@ import numpy as np
 from sklearn.datasets import make_classification
 import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report, confusion_matrix
+import ps_data
 #%%
-X, y = make_classification(n_samples=1000,n_features =2,n_informative=2, n_redundant=0, random_state = 100 )
-y = 2 * (y - 0.5)
-CLs = {1:"fisrt", -1:"second"}
+X1,Y1,CLs = ps_data.open_ps_2007()
+X = X1.as_matrix()
+y =Y1.as_matrix()
+#%%
+
 clf = svm.SVC()
 clf.fit(X, y) 
 #clf.predict(X[10])
 #f = clf.support_vectors_
-#%%
-#X1,Y1,CLs1 = ps_data.open_ps_2007()
-#X=X1
-#Y=Y1
-#CLs= CLs1
 
 #%%
 plt.figure(1)
-plt.scatter(X[:,0][y == -1],X[:,1][y==-1], color = 'r')
-plt.scatter(X[:,0][y == 1],X[:,1][y==1], color = 'b') 
+cl_v = [1,2]
+ind1 = [y == cl_v[0]]
+ind2 = [y == cl_v[1]]
+plt.scatter(X[ind1,0],X[ind1,1], color = 'r')
+plt.scatter(X[ind2,0],X[ind2,1], color = 'b') 
 
 plt.scatter(clf.support_vectors_[:,0],clf.support_vectors_[:,1], color= 'g')#marker ="^",  alpha = 0.7)
 
 #%%
+# В данном блоке можно увидеть границы полученного классификатора.
+# Для многомерной задачи (признаков больше 2 х) возможно построить только проекцию.
+# Для этого я добавляю xy_pr значения всех признаков с любым одним значением из обучающей выборки. 
+# К сожалению, данная процедура не дает наглядной картины
+# Лучше использовать это только для класификаторов по два
 plt.figure() 
 
 # создаём сетку для построения графика
@@ -41,16 +47,26 @@ y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
 xx, yy = np.meshgrid(np.arange(x_min, x_max, h),np.arange(y_min, y_max, h))
  
 plt.subplot(1, 1, 1)
-Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+xy = np.c_[xx.ravel(), yy.ravel()]
+xy_pr = np.ones((xy.shape[0], X.shape[1]-2))*X[1500,2:17]
+xy_add = np.concatenate((xy,xy_pr),axis = 1)
+           
+Z = clf.predict(xy_add)
 Z = Z.reshape(xx.shape)
 plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=0.8)
  
 plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
-plt.xlabel('X1') # оси и название укажем на английском
-plt.ylabel('X2')
+plt.xlabel(X1.columns[0]) # оси и название укажем на английском
+plt.ylabel(X1.columns[1])
 plt.xlim(xx.min(), xx.max())
 plt.title('SVM investifation')
 plt.show()
 #%%
 y_pred = clf.predict(X)
 print(classification_report(y, y_pred, target_names = list(CLs.values())))
+#%%
+ind_x = np.array([False]*len(X))
+for  i in len(X):
+     
+    
+    

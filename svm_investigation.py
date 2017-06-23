@@ -42,6 +42,7 @@ xx, yy = np.meshgrid(np.arange(x_min, x_max, h),np.arange(y_min, y_max, h))
  
 plt.subplot(1, 1, 1)
 Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+#%%
 Z = Z.reshape(xx.shape)
 plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=0.8)
  
