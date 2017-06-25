@@ -4,7 +4,7 @@ Created on Thu Jun 22 08:59:12 2017
 
 @author: Inspiron
 """
-
+#Визуализация по проекциям на данных PS
 from sklearn import svm
 import numpy as np
 from sklearn.datasets import make_classification
@@ -24,11 +24,8 @@ clf.fit(X, y)
 
 #%%
 plt.figure(1)
-cl_v = [1,2]
-ind1 = [y == cl_v[0]]
-ind2 = [y == cl_v[1]]
-plt.scatter(X[ind1,0],X[ind1,1], color = 'r')
-plt.scatter(X[ind2,0],X[ind2,1], color = 'b') 
+plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
+
 
 plt.scatter(clf.support_vectors_[:,0],clf.support_vectors_[:,1], color= 'g')#marker ="^",  alpha = 0.7)
 
@@ -48,25 +45,37 @@ xx, yy = np.meshgrid(np.arange(x_min, x_max, h),np.arange(y_min, y_max, h))
  
 plt.subplot(1, 1, 1)
 xy = np.c_[xx.ravel(), yy.ravel()]
-xy_pr = np.ones((xy.shape[0], X.shape[1]-2))*X[1500,2:17]
+pr_el = 1000           
+xy_pr = np.ones((xy.shape[0], X.shape[1]-2))*X[pr_el,2:17]
 xy_add = np.concatenate((xy,xy_pr),axis = 1)
            
 Z = clf.predict(xy_add)
 Z = Z.reshape(xx.shape)
+
+#%%
+eps = 2
+ind_x = np.array([False]*len(X))
+for  i in np.arange(len(X)):
+    flag = True
+    for j in np.arange(X.shape[1]-2):
+        if X[i,j+2] > X[pr_el,j+2] + eps or X[i,j+2] < X[pr_el,j+2] - eps:
+           
+            flag = False
+    ind_x[i] = flag
+#%%
+#Нужно понять соответсвие цветов и классов
 plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=0.8)
  
-plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
+plt.scatter(X[ind_x, 0], X[ind_x, 1], c=y[ind_x], cmap=plt.cm.Paired)
 plt.xlabel(X1.columns[0]) # оси и название укажем на английском
 plt.ylabel(X1.columns[1])
 plt.xlim(xx.min(), xx.max())
-plt.title('SVM investifation')
+plt.title('SVM projection on X[%d]' % pr_el)
 plt.show()
 #%%
 y_pred = clf.predict(X)
 print(classification_report(y, y_pred, target_names = list(CLs.values())))
-#%%
-ind_x = np.array([False]*len(X))
-for  i in len(X):
+    
      
     
     

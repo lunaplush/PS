@@ -67,7 +67,11 @@ params = {'kernel':'rbf',"C":512.0,"gamma":0.015625} ## с этими парам
 #                работает лучше, чем к полученными позже функцией best params
 #params = {'C': 8192.0, 'gamma': 0.0078125} # на сильно зашумленных данных
 #params = {'gamma': 0.000244140625, 'C': 8192.0} №на сильно зашумленных данных
-params = {'kernel':'rbf',"C": 8,"gamma":0.125, "probability":True}
+params = {'kernel':'rbf',"C": 8,"gamma":0.125}
+
+#"probability":True  использует не совсем корректный алгоритм оценки вероятносей (из документации python)
+#время работы оценки вероятности велико, так как там используется кросс-валидация
+#а аргмаксимум по функции прнятия решений не всега совпадает  
 def best_params():
     
     cv = skl.cross_validation.StratifiedShuffleSplit(y_train, n_iter = 10, test_size = 0.2, random_state = 0)
