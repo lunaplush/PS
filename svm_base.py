@@ -22,7 +22,7 @@ import ps_data
 X1,Y1,CLs1 = ps_data.open_ps_2007()  
 X2,Y2,CLs2 = ps_data.open_ps_2009()    
 #%%
-sns.set()
+#sns.set()
 #add hue
 #sns.pairplot(X1).savefig("pairplot_2007.png")
 
@@ -38,10 +38,16 @@ CLs = CLs1
   
 #%% Масштабирование
 
+
 coder = StandardScaler()
 coder.fit(X_train)
 X_train_scaled = coder.transform(X_train)
 X_test_scaled =  coder.transform(X_test)
+
+#X_train_scaled = X_train
+#X_test_scaled =  X_test
+
+
 #%% 
 # Дополним классы, в которых меньшее число примеров.
 

@@ -53,7 +53,7 @@ Z = clf.predict(xy_add)
 Z = Z.reshape(xx.shape)
 
 #%%
-eps = 2
+eps = 0.3
 ind_x = np.array([False]*len(X))
 for  i in np.arange(len(X)):
     flag = True
