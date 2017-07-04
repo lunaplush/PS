@@ -108,6 +108,31 @@ print('impl_gauss:', impl_gauss)
 assert(mlab_gauss == impl_gauss),\
         'Implementations of the mult. Gaussian return different pdfs'
 #%%
+def parzen_window_est(x_samples, h=1, center=[0,0,0]):
+    '''
+    Implementation of the Parzen-window estimation for hypercubes.
+
+    Keyword arguments:
+        x_samples: A 'n x d'-dimensional numpy array, where each sample
+            is stored in a separate row.
+        h: The length of the hypercube.
+        center: The coordinate center of the hypercube
+
+    Returns the probability density for observing k samples inside the hypercube.
+
+    '''
+    dimensions = x_samples.shape[1]
+
+    assert (len(center) == dimensions)  #            'Number of center coordinates have to match sample dimensions'
+    k = 0
+    for x in x_samples:
+        is_inside = 1
+        for axis,center_point in zip(x, center):
+            if np.abs(axis-center_point) > (h/2):
+                is_inside = 0
+        k += is_inside
+    return (k / len(x_samples)) / (h**dimensions)        
+#%%        
 print('Predict p(x) at the center [0,0]: ')
 
 print('h = 0.1 ---> p(x) =', parzen_window_est(x_2Dgauss, h=0.1, center=[0, 0])  )
@@ -133,3 +158,22 @@ parzen_estimates = [np.abs(parzen_window_est(x_2Dgauss, h=i, center=[0, 0])
 min_index, min_value = min(enumerate(parzen_estimates), key=operator.itemgetter(1))
 
 print('Optimal window width for this data set: ', h_range[min_index])      
+#%%
+import operator
+
+# generate a range of 400 window widths between 0 < h < 1
+h_range = np.linspace(0.001, 1, 400)
+
+# calculate the actual density at the center [0, 0]
+mu = np.array([[0],[0]])
+cov = np.eye(2)
+actual_pdf_val = pdf_multivariate_gauss(np.array([[0],[0]]), mu, cov)
+
+# get a list of the differnces (|estimate-actual|) for different window widths
+parzen_estimates = [np.abs(parzen_window_est(x_2Dgauss, h=i, center=[0, 0])
+               - actual_pdf_val) for i in h_range]
+
+# get the window width for which |estimate-actual| is closest to 0
+min_index, min_value = min(enumerate(parzen_estimates), key=operator.itemgetter(1))
+
+print('Optimal window width for this data set: ', h_range[min_index])
