@@ -102,10 +102,9 @@ x = x[:,[3,5]]
 y = Y[y_ind]
 #simple_svc(x,Y[y_ind])
 
-#%%
-
+#%% 
 #Решим задачу мультиклассовой классификации разбив на пыры и построив матрицу решений
-
+ 
 params = {'kernel':'rbf',"C": 8,"gamma":0.125}   
 features_ind = np.arange(17)
 classes = list(CLs1.keys())
@@ -130,5 +129,11 @@ for cl1 in np.arange(1,M):
     for cl2 in np.arange(cl1+1,M+1):        
         if (cl1 == 1 and cl2 != 2) or cl1!=1:           
            y_predict1 = np.concatenate((y_predict1,CLF[cl1 - 1,cl2 -1].predict(X_test).reshape(MM,1)),axis = 1)
-         
-         
+
+l = len(y_predict1)
+y_predict_max = np.ones(l)         
+for i in np.arange(l):
+    h = np.histogram(y_predict1[i], bins = list(CLs1.keys()))
+    y_predict_max[i] =int(h[1][np.argmax(h[0])]         )
+#%%
+print(classification_report(y_test, y_predict_max, target_names = list(CLs1.values())))
