@@ -133,7 +133,13 @@ for cl1 in np.arange(1,M):
 l = len(y_predict1)
 y_predict_max = np.ones(l)         
 for i in np.arange(l):
-    h = np.histogram(y_predict1[i], bins = list(CLs1.keys()))
+    h = np.histogram(y_predict1[i], bins = list(CLs1.keys())+[1000])
     y_predict_max[i] =int(h[1][np.argmax(h[0])]         )
 #%%
 print(classification_report(y_test, y_predict_max, target_names = list(CLs1.values())))
+#%%
+
+clf = SVC(**params)
+clf.fit(X_train,y_train)
+y_pred = clf.predict(X_test)
+print(classification_report(y_test, y_pred, target_names = list(CLs1.values())))

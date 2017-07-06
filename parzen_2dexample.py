@@ -177,3 +177,23 @@ parzen_estimates = [np.abs(parzen_window_est(x_2Dgauss, h=i, center=[0, 0])
 min_index, min_value = min(enumerate(parzen_estimates), key=operator.itemgetter(1))
 
 print('Optimal window width for this data set: ', h_range[min_index])
+#%%
+import prettytable
+
+p1 = parzen_window_est(x_2Dgauss, h=h_range[min_index], center=[0, 0])
+p2 = parzen_window_est(x_2Dgauss, h=h_range[min_index], center=[0.5, 0.5])
+p3 = parzen_window_est(x_2Dgauss, h=h_range[min_index], center=[0.3, 0.2])
+
+mu = np.array([[0],[0]])
+cov = np.eye(2)
+
+a1 = pdf_multivariate_gauss(np.array([[0],[0]]), mu, cov)
+a2 = pdf_multivariate_gauss(np.array([[0.5],[0.5]]), mu, cov)
+a3 = pdf_multivariate_gauss(np.array([[0.3],[0.2]]), mu, cov)
+
+results = prettytable.PrettyTable(["", "predicted", "actual"])
+results.add_row(["p([0,0]^t",p1, a1])
+results.add_row(["p([0.5,0.5]^t",p2, a2])
+results.add_row(["p([0.3,0.2]^t",p3, a3])
+
+print(results)
