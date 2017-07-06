@@ -21,6 +21,7 @@ import ps_data
 #
 
 X1,Y1,CLs1 = ps_data.open_ps_2007()  
+X2,Y2 = ps_data.open_ps_2007_fals()
 
 
 #%%

@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from matplotlib.mlab import bivariate_normal
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.stats import multivariate_normal
+
+
 #%%
 # Generate 10,000 random 2D-patterns
 mu_vec = np.array([0,0])
@@ -197,3 +199,179 @@ results.add_row(["p([0.5,0.5]^t",p2, a2])
 results.add_row(["p([0.3,0.2]^t",p3, a3])
 
 print(results)
+#%%
+from scipy.stats import kde
+
+density = kde.gaussian_kde(x_2Dgauss.T, bw_method=0.3)
+print(density.evaluate(np.array([[0],[0]])))
+#%%
+gde = kde.gaussian_kde(x_2Dgauss.T, bw_method=0.3)
+
+results = prettytable.PrettyTable(["", "p(x) hypercube kernel",
+    "p(x) Gaussian kernel", "p(x) actual"])
+results.add_row(["p([0,0]^t",p1, gde.evaluate(np.array([[0],[0]]))[0], a1])
+results.add_row(["p([0.5,0.5]^t",p2, gde.evaluate(np.array([[0.5],[0.5]]))[0], a2])
+results.add_row(["p([0.3,0.2]^t",p3, gde.evaluate(np.array([[0.3],[0.2]]))[0], a3])
+
+print(results)
+#%%
+scott = kde.gaussian_kde(x_2Dgauss.T, bw_method='scott')
+silverman = kde.gaussian_kde(x_2Dgauss.T, bw_method='silverman')
+scalar = kde.gaussian_kde(x_2Dgauss.T, bw_method=0.3)
+actual = pdf_multivariate_gauss(np.array([[0],[0]]), mu, cov)
+
+results = prettytable.PrettyTable(["", "p([0,0]^t gaussian kernel"])
+results.add_row(["bw_method scalar 0.3:", scalar.evaluate(np.array([[0],[0]]))[0]])
+results.add_row(["bw_method scott:", scott.evaluate(np.array([[0],[0]]))[0]])
+results.add_row(["bw_method silverman:", silverman.evaluate(np.array([[0],[0]]))[0]])
+results.add_row(["actual density:", actual])
+
+print(results)
+
+
+#--------- MEGA PLOTTING
+#%%
+def parzen_estimation(x_samples, point_x, h, d, window_func, kernel_func):
+#    """
+#    Implementation of a parzen-window estimation.
+#
+#    Keyword arguments:
+#        x_samples: A 'n x d'-dimensional numpy array, where each sample
+#            is stored in a separate row. (= training sample)
+#        point_x: point x for density estimation, 'd x 1'-dimensional numpy array
+#        h: window width
+#        d: dimensions
+#        window_func: a Parzen window function (phi)
+#        kernel_function: A hypercube or Gaussian kernel functions
+#
+#    Returns the density estimate p(x).
+#
+#    """
+   
+    k_n = 0
+    
+    for row in x_samples:
+        
+        x_i = kernel_func(h=h, x=point_x, x_i=row[:,np.newaxis])
+        k_n += window_func(x_i, h=h)
+        
+   
+    return (k_n / len(x_samples)) / (h**d)
+def hypercube_kernel(h, x, x_i):
+    """
+    Implementation of a hypercube kernel for Parzen-window estimation.
+
+    Keyword arguments:
+        h: window width
+        x: point x for density estimation, 'd x 1'-dimensional numpy array
+        x_i: point from training sample, 'd x 1'-dimensional numpy array
+
+    Returns a 'd x 1'-dimensional numpy array as input for a window function.
+
+    """
+    assert (x.shape == x_i.shape), 'vectors x and x_i must have the same dimensions'
+    return (x - x_i) / (h)
+
+
+def parzen_window_func(x_vec, h=1):
+    """
+    Implementation of the window function. Returns 1 if 'd x 1'-sample vector
+    lies within inside the window, 0 otherwise.
+
+    """
+    for row in x_vec:
+        if np.abs(row) > (1/2):
+            return 0
+    return 1
+
+#%%
+X = np.linspace(-5, 5, 100)
+Y = np.linspace(-5, 5, 100)
+X,Y = np.meshgrid(X,Y)
+
+
+##########################################
+### Hypercube kernel density estimates ###
+##########################################
+
+
+#%%
+Z = []
+ind = 0
+for i,j in zip(X.ravel(),Y.ravel()):
+    zn = parzen_estimation(x_2Dgauss, np.array([[i],[j]]), h=0.3, d=2,
+                                 window_func=parzen_window_func,
+                                 kernel_func=hypercube_kernel)
+    Z.append(zn)
+    print(zn, ind)
+    ind = ind + 1 
+#%%
+fig = plt.figure(figsize=(10, 7))
+ax = fig.gca(projection='3d')
+Z = np.asarray(Z).reshape(100,100)
+surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.coolwarm,
+        linewidth=0, antialiased=False)
+
+ax.set_zlim(0, 0.2)
+
+ax.zaxis.set_major_locator(plt.LinearLocator(10))
+ax.zaxis.set_major_formatter(plt.FormatStrFormatter('%.02f'))
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('p(x)')
+
+plt.title('Hypercube kernel with window width h=0.3')
+
+fig.colorbar(surf, shrink=0.5, aspect=7, cmap=plt.cm.coolwarm)
+
+plt.show()
+#%%
+#########################################
+### Gaussian kernel density estimates ###
+#########################################
+
+for bwmethod,t in zip([scalar, scott, silverman], ['scalar h=0.3', 'scott',
+        'silverman']):
+    fig = plt.figure(figsize=(10, 7))
+    ax = fig.gca(projection='3d')
+    Z = bwmethod(np.array([X.ravel(),Y.ravel()]))
+    Z = Z.reshape(100,100)
+    surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.coolwarm,
+        linewidth=0, antialiased=False)
+
+    ax.set_zlim(0, 0.2)
+    ax.zaxis.set_major_locator(plt.LinearLocator(10))
+    ax.zaxis.set_major_formatter(plt.FormatStrFormatter('%.02f'))
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('p(x)')
+
+    plt.title('Gaussian kernel, bw_method %s' %t)
+    fig.colorbar(surf, shrink=0.5, aspect=7, cmap=plt.cm.coolwarm)
+    plt.show()
+
+#%%
+###########################################
+### Actual bivariate Gaussian densities ###
+###########################################
+
+
+fig = plt.figure(figsize=(10, 7))
+ax = fig.gca(projection='3d')
+Z = bivariate_normal(X, Y)
+surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=plt.cm.coolwarm,
+        linewidth=0, antialiased=False)
+
+ax.set_zlim(0, 0.2)
+
+ax.zaxis.set_major_locator(plt.LinearLocator(10))
+ax.zaxis.set_major_formatter(plt.FormatStrFormatter('%.02f'))
+fig.colorbar(surf, shrink=0.5, aspect=7, cmap=plt.cm.coolwarm)
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('p(x)')
+plt.title('Actual bivariate Gaussian densities')
+
+plt.show()
