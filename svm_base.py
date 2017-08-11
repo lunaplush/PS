@@ -14,6 +14,7 @@ from sklearn.cross_validation import train_test_split,cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.naive_bayes import GaussianNB
 
 import ps_data
 
@@ -29,13 +30,34 @@ X2,Y2,CLs2 = ps_data.open_ps_2009()
 #sns.pairplot(X2).savefig("pairplot_2009.png")
 #%%
 
-X = X1
-Y = Y1
-CLs = CLs1
+X = X2
+Y = Y2
+CLs = CLs2
+#%% 
+# Дополним классы, в которых меньшее число примеров.
 
+
+a =  Y.groupby("class_num")
+mn = max(a.apply(len))
+
+for i in a:
+    n = len(i[1] )
+   
+    dl = int(mn/n)
+    for j in np.arange(dl - 1):
+        X =  X.append(X[Y["class_num"] == i[0]].iloc[0:n])
+        Y =  Y.append(Y[Y["class_num"] == i[0]].iloc[0:n])
+        
+    X =  X.append(X[Y["class_num"] == i[0]].iloc[0:mn - n*(dl)])
+    Y =  Y.append(Y[Y["class_num"] == i[0]].iloc[0:mn - n*(dl)])
+    
+    
+#%%
+X = X.append(X[Y["class_num"]==13])
+Y = Y.append(pd.DataFrame(np.ones(len(X[Y["class_num"]==13]))*14))   
 #%% Предварительное разбиен ие на тестовую и обучающую выборки
 (X_train, X_test, y_train, y_test) = train_test_split(X,Y,test_size = 0.3, random_state = 0, stratify=Y)
-  
+
 #%% Масштабирование
 
 
@@ -48,25 +70,7 @@ X_test_scaled =  coder.transform(X_test)
 #X_test_scaled =  X_test
 
 
-#%% 
-# Дополним классы, в которых меньшее число примеров.
-#ОШИБКА Дополняем не отмасштабированные данные и по факту их не используем нигде
 
-a =  Y.groupby("class_num")
-mn = max(a.apply(len))
-
-for i in a:
-    n = len(i[1] )
-    print(mn,n)
-    dl = int(mn/n)
-    for j in np.arange(dl - 1):
-        X =  X.append(X[Y["class_num"] == i[0]].iloc[0:n])
-        Y =  Y.append(Y[Y["class_num"] == i[0]].iloc[0:n])
-        
-    X =  X.append(X[Y["class_num"] == i[0]].iloc[0:mn - n*(dl)])
-    Y =  Y.append(Y[Y["class_num"] == i[0]].iloc[0:mn - n*(dl)])
-    
-    
 
 
 #%%
@@ -113,7 +117,8 @@ for v in CLs.values():
 y_pred = classifier.predict(X_train_scaled)    
 train_data_report = classification_report(y_train, y_pred, target_names = s)
 test_data_report = classification_report(y_test, classifier.predict(X_test_scaled), target_names = s)
-
+print(train_data_report)
+print(test_data_report)
 
 file = open('svm_base_report.txt','w')
 file.write('#'*30)
@@ -125,8 +130,23 @@ file.write(train_data_report)
 file.write('\n\t\t\t TEST \n')
 file.write(test_data_report) 
 file.close()
-Y_res = y_train.copy()
-Y_res["pred"] = y_pred
+#Y_res = y_train.copy()
+#Y_res["pred"] = y_pred
 #%%
+y_train=y_train.as_matrix().ravel()
+y_test = y_test.as_matrix().ravel() 
+clf_NB = GaussianNB()
 
+clf_NB.fit(X_train, y_train)
+y_train_pred = clf_NB.predict(X_train)
+y_train_pred_prob = clf_NB.predict_proba(X_train)
+
+y_test_pred = clf_NB.predict(X_test)
+ 
+train_data_report = classification_report(y_train, y_train_pred, target_names = s)
+test_data_report = classification_report(y_test, y_test_pred, target_names = s)
+print(train_data_report)
+print(test_data_report)
+
+#%%
 

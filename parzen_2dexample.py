@@ -159,25 +159,6 @@ parzen_estimates = [np.abs(parzen_window_est(x_2Dgauss, h=i, center=[0, 0])
 # get the window width for which |estimate-actual| is closest to 0
 min_index, min_value = min(enumerate(parzen_estimates), key=operator.itemgetter(1))
 
-print('Optimal window width for this data set: ', h_range[min_index])      
-#%%
-import operator
-
-# generate a range of 400 window widths between 0 < h < 1
-h_range = np.linspace(0.001, 1, 400)
-
-# calculate the actual density at the center [0, 0]
-mu = np.array([[0],[0]])
-cov = np.eye(2)
-actual_pdf_val = pdf_multivariate_gauss(np.array([[0],[0]]), mu, cov)
-
-# get a list of the differnces (|estimate-actual|) for different window widths
-parzen_estimates = [np.abs(parzen_window_est(x_2Dgauss, h=i, center=[0, 0])
-               - actual_pdf_val) for i in h_range]
-
-# get the window width for which |estimate-actual| is closest to 0
-min_index, min_value = min(enumerate(parzen_estimates), key=operator.itemgetter(1))
-
 print('Optimal window width for this data set: ', h_range[min_index])
 #%%
 import prettytable
