@@ -122,6 +122,7 @@ Y.name = "class_num"
 Y = pd.DataFrame(Y)
 #%%
 # For test all possible data
+
 N1 = 100
 X1 =  PS[features].iloc[0:N1]
 Y1 = pd.DataFrame()
@@ -199,6 +200,7 @@ del X["METANOL"]
 del X1['MASS']
 del X1['KIS']
 del X1["METANOL"]
+
 #%% Добавим размножением данные по классам, в которых меньшее число примеров.
 a =  Y.groupby("class_num")
 mn = max(a.apply(len))

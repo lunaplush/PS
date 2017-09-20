@@ -35,11 +35,11 @@ def plot_X(X, cols,xylim,y_name):
     
     plt.show()
 
-xylim = [[X1['RON'].min(),X1['RON'].max()],[X1['MON'].min(),X1['MON'].max()]]
-for i in CLs1:
-    y = i
-    
-    X =  X1[Y1["class_num"] == y]    
-    cols = ['RON','MON'] 
-    plot_X(X[cols],cols,xylim,CLs1[y])
-    
+#xylim = [[X1['RON'].min(),X1['RON'].max()],[X1['MON'].min(),X1['MON'].max()]]
+#for i in CLs1:
+#    y = i
+#    
+#    X =  X1[Y1["class_num"] == y]    
+#    cols = ['RON','MON'] 
+#    plot_X(X[cols],cols,xylim,CLs1[y])
+#    

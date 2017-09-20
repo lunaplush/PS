@@ -93,7 +93,7 @@ def data_processing(PS, fals = 1):
         PS_fals = PS[PS == PS_new][features]
         X = PS_fals[features]
         Y = [1]
-    print("ku")
+   
         
 #%%        
 def open_ps_2007():
