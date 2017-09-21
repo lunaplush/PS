@@ -38,7 +38,7 @@ plt.scatter(clf.support_vectors_[:,0],clf.support_vectors_[:,1], color= 'g')#mar
 plt.figure() 
 
 # создаём сетку для построения графика
-h = 0.1
+h = 0.1     
 x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
 y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
 xx, yy = np.meshgrid(np.arange(x_min, x_max, h),np.arange(y_min, y_max, h))
