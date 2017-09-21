@@ -7,6 +7,7 @@ Created on Sun Jun 25 12:20:23 2017
 
 import numpy as np
 import sklearn as skl
+import os
 from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
@@ -15,13 +16,18 @@ from sklearn.svm import SVC
 import matplotlib.pyplot as plt
 import ps_data
 #%%
+os.chdir("d:\\Luna\\python\\PS")
+cwd = os.getcwd()
+os.chdir("..//")
+
+os.chdir("PS_data")
 #%%
 #          1
 # Получаем данные из PS
 #
 
 X1,Y1,CLs1 = ps_data.open_ps_2007()  
-X2,Y2 = ps_data.open_ps_2007_fals()
+#X2,Y2 = ps_data.open_ps_2007_fals()
 
 
 #%%

@@ -21,7 +21,8 @@ from sklearn.naive_bayes import GaussianNB
 import ps_data
 #%%
 
-os.chdir("c:\\Luna\\Work\\python\\PS")
+#os.chdir("c:\\Luna\\Work\\python\\PS")
+os.chdir("d:\\Luna\\python\\PS")
 cwd = os.getcwd()
 os.chdir("..//")
 
@@ -33,16 +34,28 @@ os.chdir("PS_data")
 X1,Y1,CLs1 = ps_data.open_ps_2007()  
 X2,Y2,CLs2 = ps_data.open_ps_2009()    
 #%%
-
+def save_picture(g, name='',dr ='classes'):
+    pwd = os.getcwd()
+    iPath = '{}'.format(dr)
+    if not os.path.exists(iPath):
+        os.mkdir(iPath)
+    os.chdir(iPath)
+    g.savefig(name)
+    os.chdir(pwd)
+#%%
 sns.set(style = "darkgrid", color_codes = True)
+picture_foramt ='png'
+colors = ['r','orange','y','g','c','b','violet','m','pink','#ee00ff']
 l = len(X1.columns)
-for xi in np.arange(l):
-    for yi in np.arange(0,l):
+for xi in np.arange(l-1):
+    for yi in np.arange(xi+1,l):
+        print(xi,yi)
         xylim = [[X1.iloc[:,xi].min(),X1.iloc[:,xi].max()],[X1.iloc[:,yi].min(),X1.iloc[:,yi].max()]]
         for cl in CLs1:
           x =  X1[Y1["class_num"] == cl]
-          g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],kind = "reg",color = "b",size= 7)#,xlim = tuple(xylim[xi]),ylim = tuple(xylim[yi]),color = "b",size= 7)
-          g.savefig("test.png")
+          g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],kind = "reg",color = colors[cl-1],size= 7)#,xlim = tuple(xylim[xi]),ylim = tuple(xylim[yi]),color = "b",size= 7)
+          save_picture(g,'{}_{}_{}.{}'.format(cl,X1.columns[xi],X1.columns[yi],picture_foramt))
+          save_picture(g,'{}_{}_{}.{}'.format(X1.columns[xi],X1.columns[yi],cl,picture_foramt),dr = 'features')
 #add hue
 #sns.pairplot(X1).savefig("pairplot_2007.png")
 

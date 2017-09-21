@@ -6,6 +6,7 @@ Created on Wed Jun 21 14:55:20 2017
 """
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sklearn as skl
