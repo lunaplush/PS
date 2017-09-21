@@ -9,6 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sklearn as skl
+import os
+
 from sklearn import svm
 from sklearn.cross_validation import train_test_split,cross_val_score
 from sklearn.preprocessing import StandardScaler
@@ -17,19 +19,30 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.naive_bayes import GaussianNB
 
 import ps_data
+#%%
+
+os.chdir("c:\\Luna\\Work\\python\\PS")
+cwd = os.getcwd()
+os.chdir("..//")
+
+os.chdir("PS_data")
+
 
 #%%
 
 X1,Y1,CLs1 = ps_data.open_ps_2007()  
 X2,Y2,CLs2 = ps_data.open_ps_2009()    
 #%%
+
 sns.set(style = "darkgrid", color_codes = True)
-xylim = [[X1['RON'].min(),X1['RON'].max()],[X1['MON'].min(),X1['MON'].max()]]
-x =  X1[Y1["class_num"] == 1]    
-xi = 0
-yi = 1
-g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],kind = "reg",color = "b",size= 7)#,xlim = tuple(xylim[xi]),ylim = tuple(xylim[yi]),color = "b",size= 7)
-g.savefig("test.png")
+l = len(X1.columns)
+for xi in np.arange(l):
+    for yi in np.arange(0,l):
+        xylim = [[X1.iloc[:,xi].min(),X1.iloc[:,xi].max()],[X1.iloc[:,yi].min(),X1.iloc[:,yi].max()]]
+        for cl in CLs1:
+          x =  X1[Y1["class_num"] == cl]
+          g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],kind = "reg",color = "b",size= 7)#,xlim = tuple(xylim[xi]),ylim = tuple(xylim[yi]),color = "b",size= 7)
+          g.savefig("test.png")
 #add hue
 #sns.pairplot(X1).savefig("pairplot_2007.png")
 
