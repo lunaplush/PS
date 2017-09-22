@@ -22,7 +22,7 @@ import ps_data
 #%%
 
 #os.chdir("c:\\Luna\\Work\\python\\PS")
-os.chdir("d:\\Luna\\python\\PS")
+#os.chdir("d:\\Luna\\python\\PS")
 cwd = os.getcwd()
 os.chdir("..//")
 
@@ -34,7 +34,7 @@ os.chdir("PS_data")
 X1,Y1,CLs1 = ps_data.open_ps_2007()  
 X2,Y2,CLs2 = ps_data.open_ps_2009()    
 #%%
-def save_picture(g, name='',dr ='classes'):
+def save_picture(g, name='',dr ='classes_s'):
     pwd = os.getcwd()
     iPath = '{}'.format(dr)
     if not os.path.exists(iPath):
@@ -53,13 +53,22 @@ for xi in np.arange(l-1):
         xylim = [[X1.iloc[:,xi].min(),X1.iloc[:,xi].max()],[X1.iloc[:,yi].min(),X1.iloc[:,yi].max()]]
         for cl in CLs1:
           x =  X1[Y1["class_num"] == cl]
-          g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],kind = "reg",color = colors[cl-1],size= 7)#,xlim = tuple(xylim[xi]),ylim = tuple(xylim[yi]),color = "b",size= 7)
-          save_picture(g,'{}_{}_{}.{}'.format(cl,X1.columns[xi],X1.columns[yi],picture_foramt))
-          save_picture(g,'{}_{}_{}.{}'.format(X1.columns[xi],X1.columns[yi],cl,picture_foramt),dr = 'features')
+          try:
+              g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],color = colors[cl-1],size= 7)#,xlim = tuple(xylim[xi]),ylim = tuple(xylim[yi]),color = "b",size= 7)
+              save_picture(g,'{}_{}_{}.{}'.format(cl,X1.columns[xi],X1.columns[yi],picture_foramt))
+              save_picture(g,'{}_{}_{}.{}'.format(X1.columns[xi],X1.columns[yi],cl,picture_foramt),dr = 'features_s')
+          except Exception:
+              print('for {} and {} there are error'.format(X1.columns[xi],X1.columns[yi]))
 #add hue
 #sns.pairplot(X1).savefig("pairplot_2007.png")
 
 #sns.pairplot(X2).savefig("pairplot_2009.png")
+#%%
+xi = 2
+yi = 3
+cl = 10
+g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],color = colors[cl-1],size= 7)
+              
 #%%
 #def plot_X(X, cols,xylim,y_name):
 #    assert(X.shape[1] == 2)
