@@ -47,18 +47,24 @@ sns.set(style = "darkgrid", color_codes = True)
 picture_foramt ='png'
 colors = ['r','orange','y','g','c','b','violet','m','pink','#ee00ff']
 l = len(X1.columns)
+X_Cl = X1
+X_Cl["class"] = Y1
+
 for xi in np.arange(l-1):
     for yi in np.arange(xi+1,l):
         print(xi,yi)
         xylim = [[X1.iloc[:,xi].min(),X1.iloc[:,xi].max()],[X1.iloc[:,yi].min(),X1.iloc[:,yi].max()]]
-        for cl in CLs1:
-          x =  X1[Y1["class_num"] == cl]
-          try:
-              g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],color = colors[cl-1],size= 7)#,xlim = tuple(xylim[xi]),ylim = tuple(xylim[yi]),color = "b",size= 7)
-              save_picture(g,'{}_{}_{}.{}'.format(cl,X1.columns[xi],X1.columns[yi],picture_foramt))
-              save_picture(g,'{}_{}_{}.{}'.format(X1.columns[xi],X1.columns[yi],cl,picture_foramt),dr = 'features_s')
-          except Exception:
-              print('for {} and {} there are error'.format(X1.columns[xi],X1.columns[yi]))
+        g =sns.lmplot(x = X_Cl.columns[xi],y =  X_Cl.columns[yi],hue = "class", truncate = True,fit_reg = False, size = 7 ,data =X_Cl)
+        save_picture(g,'all_{}_{}.{}'.format(X1.columns[xi],X1.columns[yi],picture_foramt))
+#        for cl in CLs1:
+#          x =  X1[Y1["class_num"] == cl]
+#          try:
+#              g =  sns.jointplot(x.iloc[:,xi],x.iloc[:,yi],color = colors[cl-1],size= 7)#,xlim = tuple(xylim[xi]),ylim = tuple(xylim[yi]),color = "b",size= 7)
+#              save_picture(g,'{}_{}_{}.{}'.format(cl,X1.columns[xi],X1.columns[yi],picture_foramt))
+#              save_picture(g,'{}_{}_{}.{}'.format(X1.columns[xi],X1.columns[yi],cl,picture_foramt),dr = 'features_s')
+#          except Exception:
+#              print('for {} and {} there are error'.format(X1.columns[xi],X1.columns[yi]))
+          
 #add hue
 #sns.pairplot(X1).savefig("pairplot_2007.png")
 

@@ -6,6 +6,7 @@ Get data from PS filies
 """
 import numpy as np
 import pandas as pd
+import os
 
 features = ["ro","RON", "MON", "OLF","ALK","AROMA","BNZ","KIS", \
             "TLL","MASS","METANOL","ETANOL","MTBE","ETBE","TAME","DIPE","TBS"]
@@ -14,7 +15,7 @@ Y = []
 CLs = {}
             
 def hello():
-    print("PS data module")
+    print("PS data module ku")
     
 def get_key(d, value):
     for k, v in d.items():
@@ -122,7 +123,7 @@ def open_ps_2007_fals():
 #%%        
 def open_ps_2009():
     global X,Y,CLs
-  
+    print("--------------------------------",os.getcwd())
     file = "PS 09.xls"
     xfile = pd.ExcelFile(file) 
     df_cols = xfile.parse(sheetname = "columns", header = 3)
