@@ -121,11 +121,9 @@ for i in X7_92.groupby("class_num"):
     class_num.append(len(i[1]))
 
 class_num_current = 0    
-Xp = np.array((class_num[class_num_current],16))
-for i in np.arange(class_num[class_num_current]):
-    for j in np.arange(16):
-        Xp[i][j] = np.random.rand(1)
+Xp = np.random.rand(class_num[0],X.shape[1])
 
+X_class = np.vstack((X[y==class_num_current],Xp))
 #train_index, test_index  = StratifiedShuffleSplit(y,)
 
 #%%
