@@ -155,6 +155,7 @@ np.random.seed(10)
 
 trainer = BackpropTrainer(net, dataset=ds_train) # Инициализируем модуль оптимизации
 err_train, err_val = trainer.trainUntilConvergence(maxEpochs=MAX_EPOCHS)
+#BackpropTrainer
 line_train = plt.plot(err_train, 'b', err_val, 'r') # Построение графика
 xlab = plt.xlabel('Iterations')
 ylab = plt.ylabel('Error')
