@@ -54,7 +54,7 @@ dif_min_max = maxzn-minzn
 
 
 X = scaler.fit_transform( X7_92[list(set(X7.columns) - {"class_num","METANOL"})])
-y = X7_92["class_num"]-3
+y = np.array(X7_92["class_num"]-3)
 
 #matrix_covariance = np.cov(X.T)
 #vectors = np.linalg.eig(matrix_covariance)
@@ -124,7 +124,48 @@ class_num_current = 0
 Xp = np.random.rand(class_num[0],X.shape[1])
 
 X_class = np.vstack((X[y==class_num_current],Xp))
-#train_index, test_index  = StratifiedShuffleSplit(y,)
+y_class = np.hstack((y[y==class_num_current], -1*np.ones(class_num[0], dtype = "int")))
+#y_class = [int(i) for i in y_class]
+sss = StratifiedShuffleSplit(y = y_class, n_iter = 1, test_size = 0.33, random_state = 10)
+for tr,ts in sss: 
+    train_index = tr
+    test_index =  ts  
+    X_class_train = X_class[train_index]
+    X_class_test = X_class[test_index]
+    y_class_train = y_class[train_index]
+    y_class_test = y_class[test_index]
+ 
+ds_train = ClassificationDataSet(np.shape(X_class)[1], nb_classes= 2)
+ds_train.setField("input", X_class_train)
+ds_train.setField("target", y_class_train[:, np.newaxis])
+
+
+ds_test = ClassificationDataSet(np.shape(X_class)[1], nb_classes= 2)
+ds_test.setField("input", X_class_test)
+ds_test.setField("target", y_class_test[:, np.newaxis])
+
+#%%
+HIDDEN_NEURONS_NUM = 100
+np.random.seed(10)
+net = buildNetwork(ds_train.indim,HIDDEN_NEURONS_NUM, ds_train.outdim )
+init_params = np.random.random(( len(net.params))) # Инициализируем веса сети для получения воспроизводимого результата
+net._setParameters(init_params)
+
+np.random.seed(10)
+
+trainer = BackpropTrainer(net, dataset=ds_train) # Инициализируем модуль оптимизации
+err_train, err_val = trainer.trainUntilConvergence(maxEpochs=MAX_EPOCHS)
+line_train = plt.plot(err_train, 'b', err_val, 'r') # Построение графика
+xlab = plt.xlabel('Iterations')
+ylab = plt.ylabel('Error')
+#%%
+#%%
+res_train = net.activateOnDataset(ds_train).argmax(axis=1) # Подсчет результата на обучающей выборке
+print('Error on train: ', percentError(res_train, ds_train['target'].argmax(axis=1)), '%') # Подсчет ошибки
+res_test = net.activateOnDataset(ds_test).argmax(axis=1) # Подсчет результата на тестовой выборке
+print('Error on test: ', percentError(res_test, ds_test['target'].argmax(axis=1)), '%') # Подсчет ошибки
+
+     
 
 #%%
 #random.seed(0) # Зафиксируем seed для получния воспроизводимого результата
