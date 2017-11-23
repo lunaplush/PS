@@ -120,11 +120,11 @@ class_num = []
 for i in X7_92.groupby("class_num"):
     class_num.append(len(i[1]))
 
-class_num_current = 0    
-Xp = np.random.rand(class_num[0],X.shape[1])
+class_num_current = 1    
+Xp = np.random.rand(class_num[class_num_current],X.shape[1])
 
 X_class = np.vstack((X[y==class_num_current],Xp))
-y_class = np.hstack((y[y==class_num_current], -1*np.ones(class_num[0], dtype = "int")))
+y_class = np.hstack((y[y==class_num_current], -1*np.ones(class_num[class_num_current], dtype = "int")))
 #y_class = [int(i) for i in y_class]
 sss = StratifiedShuffleSplit(y = y_class, n_iter = 1, test_size = 0.33, random_state = 10)
 for tr,ts in sss: 
@@ -138,16 +138,16 @@ for tr,ts in sss:
 ds_train = ClassificationDataSet(np.shape(X_class)[1], nb_classes= 2)
 ds_train.setField("input", X_class_train)
 ds_train.setField("target", y_class_train[:, np.newaxis])
-
+ds_train._convertToOneOfMany( )
 
 ds_test = ClassificationDataSet(np.shape(X_class)[1], nb_classes= 2)
 ds_test.setField("input", X_class_test)
 ds_test.setField("target", y_class_test[:, np.newaxis])
-
-#%%
+ds_test._convertToOneOfMany( )
+ #%%
 HIDDEN_NEURONS_NUM = 100
 np.random.seed(10)
-net = buildNetwork(ds_train.indim,HIDDEN_NEURONS_NUM, ds_train.outdim )
+net = buildNetwork(ds_train.indim,HIDDEN_NEURONS_NUM, ds_train.outdim,outclass=SoftmaxLayer )
 init_params = np.random.random(( len(net.params))) # Инициализируем веса сети для получения воспроизводимого результата
 net._setParameters(init_params)
 
