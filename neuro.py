@@ -68,14 +68,14 @@ from pybrain.utilities import percentError
 #%%
 #%%
 # Определение основных констант
-HIDDEN_NEURONS_NUM = 2 # Количество нейронов, содержащееся в скрытом слое сети
+HIDDEN_NEURONS_NUM = 20 # Количество нейронов, содержащееся в скрытом слое сети
 MAX_EPOCHS = 100 # Максимальное число итераций алгоритма оптимизации параметров сети
 
 #%%
 
 # Конвертация данных в структуру ClassificationDataSet
 # Обучающая часть
-ds_train = ClassificationDataSet(np.shape(X)[1], nb_classes=len(np.unique(y_train)))
+ds_train = ClassificationDataSet(np.shape(X)[1], nb_classes=len(np.resunique(y_train)))
 # Первый аргумент -- количество признаков np.shape(X)[1], второй аргумент -- количество меток классов len(np.unique(y_train)))
 ds_train.setField('input', X_train) # Инициализация объектов
 #ds_train.setField('target', y_train[:, np.newaxis]) # Инициализация ответов; np.newaxis создает вектор-столбец
