@@ -15,11 +15,17 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix
 import os
 import random
+ from scipy import diag,arange
 
 
 from sklearn.datasets import make_classification
 
-
+#%%
+from pybrain.datasets import ClassificationDataSet # Структура данных pybrain
+from pybrain.tools.shortcuts import buildNetwork
+from pybrain.supervised.trainers import BackpropTrainer
+from pybrain.structure.modules import SoftmaxLayer
+from pybrain.utilities import percentError
 #%matplotlib inline
 #%%
 
@@ -27,27 +33,44 @@ from sklearn.datasets import make_classification
  
 N = 2
 k = 100
-np.random.seed(0)
-a = np.random.normal(loc = 0.2,scale = 0.1, size = k).reshape(k,1)
-np.random.seed(0)
-b = np.random.normal(loc = 0.3,scale = 0.05, size = k).reshape(k,1)
+K = 1 #clusters
 
-y = np.ones(k).reshape(k,1)
-
-X = np.hstack((a,b))
 np.random.seed(0)
-a= np.random.uniform(low = 0.0, high = 1, size = k).reshape(k,1)
-np.random.seed(0)
-b= np.random.uniform(low = 0.0, high = 1, size = k).reshape(k,1)
-X2 = np.hstack((a,b))
-X = np.vstack((X,X2))
-del X2
-
-y1 = np.zeros(k).reshape(k,1)
-y = np.vstack((y,y1))
-del y1
+#corresponds to N, K
+means =[(0.1,0.1), (0.4,0.5)]
+cov =[diag([0.1,0.2]), diag([0.1,0.05])]
+ds = ClassificationDataSet(N,nb_classes = 2)
+for i in range(k):
+    for cluster in range(K):
+        input = np.random.multivariate_normal(means[cluster],cov[cluster])
+        for j in range(N):
+           if input[j] > 1:
+               input[j] = means[cluster][j]
+           if input[j] < 0:
+               input[j] = means[cluster][j]
+        ds.addSample(input,[1])
+        ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
+        
+#for i in range(k*K):
+#    ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
+        
+        
 #%%
+mean = [0,0]
+#mean = [0]
+cov = [[0.01,0],[0,10]]
+#cov = [0.1]
+x,y =  np.random.multivariate_normal(mean,cov,5000).T
+plt.plot(x,y,'b')
+plt.axis('equal')
+plt.xticks(np.linspace(-20,20,13))
 
+plt.show()
+    
+
+
+#%%
+X = ds['input']
 plt.scatter(X[:k,0],X[:k,1])
 plt.scatter(X[k:,0],X[k:,1], color = "red")
 
@@ -58,12 +81,7 @@ TRAIN_SIZE = 0.7 # Разделение данных на обучающую и 
 #from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=TRAIN_SIZE, random_state=0)
-#%%
-from pybrain.datasets import ClassificationDataSet # Структура данных pybrain
-from pybrain.tools.shortcuts import buildNetwork
-from pybrain.supervised.trainers import BackpropTrainer
-from pybrain.structure.modules import SoftmaxLayer
-from pybrain.utilities import percentError
+
 
 #%%
 #%%
@@ -75,7 +93,7 @@ MAX_EPOCHS = 100 # Максимальное число итераций алго
 
 # Конвертация данных в структуру ClassificationDataSet
 # Обучающая часть
-ds_train = ClassificationDataSet(np.shape(X)[1], nb_classes=len(np.resunique(y_train)))
+ds_train = ClassificationDataSet(np.shape(X)[1], nb_classes=len(np.unique(y_train)))
 # Первый аргумент -- количество признаков np.shape(X)[1], второй аргумент -- количество меток классов len(np.unique(y_train)))
 ds_train.setField('input', X_train) # Инициализация объектов
 #ds_train.setField('target', y_train[:, np.newaxis]) # Инициализация ответов; np.newaxis создает вектор-столбец
