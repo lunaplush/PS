@@ -15,7 +15,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix
 import os
 import random
- from scipy import diag,arange
+from scipy import diag,arange
 
 
 from sklearn.datasets import make_classification
@@ -31,23 +31,29 @@ from pybrain.utilities import percentError
 
 #X, y = make_classification(n_features=100, n_samples=1000)
  
-N = 2
+N = 16
 k = 100
-K = 1 #clusters
+K = 2 #clusters
 
 np.random.seed(0)
 #corresponds to N, K
-means =[(0.1,0.1), (0.4,0.5)]
-cov =[diag([0.1,0.2]), diag([0.1,0.05])]
+means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
+cov =[diag([0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35]), diag([0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35])]
+ch1 = 0
+
 ds = ClassificationDataSet(N,nb_classes = 2)
 for i in range(k):
     for cluster in range(K):
+       
         input = np.random.multivariate_normal(means[cluster],cov[cluster])
+        
         for j in range(N):
            if input[j] > 1:
                input[j] = means[cluster][j]
+               ch1+= 1
            if input[j] < 0:
                input[j] = means[cluster][j]
+               ch1+=1
         ds.addSample(input,[1])
         ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
         
@@ -55,24 +61,28 @@ for i in range(k):
 #    ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
         
         
-#%%
-mean = [0,0]
-#mean = [0]
-cov = [[0.01,0],[0,10]]
-#cov = [0.1]
-x,y =  np.random.multivariate_normal(mean,cov,5000).T
-plt.plot(x,y,'b')
-plt.axis('equal')
-plt.xticks(np.linspace(-20,20,13))
 
-plt.show()
+#%%
+#mean = [0,0]
+##mean = [0]
+#cov = [[0.01,0],[0,10]]
+##cov = [0.1]
+#x,y =  np.random.multivariate_normal(mean,cov,5000).T
+#plt.plot(x,y,'b')
+#plt.axis('equal')
+#plt.xticks(np.linspace(-20,20,13))
+#
+#plt.show()
     
 
-
-#%%
-X = ds['input']
-plt.scatter(X[:k,0],X[:k,1])
-plt.scatter(X[k:,0],X[k:,1], color = "red")
+#a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
+#b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
+#X1 = np.hstack((a,b))
+#a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
+#b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
+#X0 = np.hstack((a,b))
+#plt.scatter(X1[:,0],X1[:,1])
+#plt.scatter(X0[:,0],X0[:,1], color = "red")
 
 #%%
 
@@ -80,31 +90,21 @@ plt.scatter(X[k:,0],X[k:,1], color = "red")
 TRAIN_SIZE = 0.7 # Разделение данных на обучающую и контрольную части в пропорции 70/30%
 #from sklearn.model_selection import train_test_split
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=TRAIN_SIZE, random_state=0)
+ds_train, ds_test = ds.splitWithProportion(TRAIN_SIZE)
 
 
-#%%
 #%%
 # Определение основных констант
-HIDDEN_NEURONS_NUM = 20 # Количество нейронов, содержащееся в скрытом слое сети
-MAX_EPOCHS = 100 # Максимальное число итераций алгоритма оптимизации параметров сети
+HIDDEN_NEURONS_NUM = 40 # Количество нейронов, содержащееся в скрытом слое сети
+MAX_EPOCHS = 250
 
-#%%
 
-# Конвертация данных в структуру ClassificationDataSet
-# Обучающая часть
-ds_train = ClassificationDataSet(np.shape(X)[1], nb_classes=len(np.unique(y_train)))
-# Первый аргумент -- количество признаков np.shape(X)[1], второй аргумент -- количество меток классов len(np.unique(y_train)))
-ds_train.setField('input', X_train) # Инициализация объектов
-#ds_train.setField('target', y_train[:, np.newaxis]) # Инициализация ответов; np.newaxis создает вектор-столбец
-ds_train.setField('target', y_train)
 
-# Контрольная часть
-ds_test = ClassificationDataSet(np.shape(X)[1], nb_classes=len(np.unique(y_train)))
-ds_test.setField('input', X_test)
 
-#ds_test.setField('target', y_test[:, np.newaxis])
-ds_test.setField('target', y_test)
+ # Максимальное число итераций алгоритма оптимизации параметров сети
+
+
+
 
 #%%
 np.random.seed(0)
@@ -125,10 +125,24 @@ xlab = plt.xlabel('Iterations')
 ylab = plt.ylabel('Error')
 
 #%%
+#ROC - кривые - порог
 res_train = net.activateOnDataset(ds_train) # Подсчет результата на обучающей выборке
-print('Error on train: ', percentError(res_train, ds_train['target'])) # Подсчет ошибки
+res_train_bin = []
+for i in res_train:
+    if  i > 0.5:
+        res_train_bin.append(1)
+    else:
+        res_train_bin.append(0)
+        
+print('Error on train: ', percentError(res_train_bin, ds_train['target'])) # Подсчет ошибки
 res_test = net.activateOnDataset(ds_test) # Подсчет результата на тестовой выборке
-print('Error on test: ', percentError(res_test, ds_test['target'])) # Подсчет ошибки
+res_test_bin = []
+for i in res_test:
+    if  i > 0.5:
+        res_test_bin.append(1)
+    else:
+        res_test_bin.append(0)
+print('Error on test: ', percentError(res_test_bin, ds_test['target'])) # Подсчет ошибки
 
 
 #%%
