@@ -31,15 +31,18 @@ from pybrain.utilities import percentError
 
 #X, y = make_classification(n_features=100, n_samples=1000)
  
-N = 16
+#N = 16
+N=2
 k = 100
 K = 2 #clusters
 
 np.random.seed(0)
 #corresponds to N, K
-means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
+#means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
 cov =[diag([0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35]), diag([0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35])]
 ch1 = 0
+means =[(0.1,0.1), (0.4,0.5)]
+cov =[diag([0.1/35,0.05/35]), diag([0.2/35,0.05/35])]
 
 ds = ClassificationDataSet(N,nb_classes = 2)
 for i in range(k):
@@ -75,14 +78,14 @@ for i in range(k):
 #plt.show()
     
 
-#a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
-#b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
-#X1 = np.hstack((a,b))
-#a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
-#b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
-#X0 = np.hstack((a,b))
-#plt.scatter(X1[:,0],X1[:,1])
-#plt.scatter(X0[:,0],X0[:,1], color = "red")
+a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
+b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
+X1 = np.hstack((a,b))
+a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
+b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
+X0 = np.hstack((a,b))
+plt.scatter(X1[:,0],X1[:,1])
+plt.scatter(X0[:,0],X0[:,1], color = "red")
 
 #%%
 
@@ -108,14 +111,14 @@ MAX_EPOCHS = 250
 
 #%%
 np.random.seed(0)
-net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim)
+net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim, bias=True)
 # ds.indim -- количество нейронов входного слоя, равне количеству признаков
 # ds.outdim -- количество нейронов выходного слоя, равное количеству меток классов
 # SoftmaxLayer -- функция активации, пригодная для решения задачи многоклассовой классификации
 
 init_params = np.random.random(( len(net.params))) # Инициализируем веса сети для получения воспроизводимого результата
 net._setParameters(init_params)
-#%%
+#%% 
 np.random.seed(0)
 # Модуль настройки параметров pybrain использует модуль random; зафиксируем seed для получения воспроизводимого результата
 trainer = BackpropTrainer(net, dataset=ds_train) # Инициализируем модуль оптимизации
@@ -146,6 +149,23 @@ print('Error on test: ', percentError(res_test_bin, ds_test['target'])) # Под
 
 
 #%%
+
+
+a = np.array([ds_train['input'][i][0] for i in arange(280) if ds_train['target'][i] == 1]).reshape(144,1)
+b = np.array([ds_train['input'][i][1] for i in arange(280) if ds_train['target'][i] == 1]).reshape(144,1)
+X1 = np.hstack((a,b))
+a = np.array([ds_train['input'][i][0] for i in arange(280) if ds_train['target'][i] == 0]).reshape(136,1)
+b = np.array([ds_train['input'][i][1] for i in arange(280) if ds_train['target'][i] == 0]).reshape(136,1)
+X0 = np.hstack((a,b))
+
+
+
+plt.scatter(X1[:,0],X1[:,1])
+plt.scatter(X0[:,0],X0[:,1], color = "red")
+
+
+X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
+plt.scatter(X3[:,0],X3[:,1], color = "green")
 #class PsData:
 #    name = "PsData class"
 #    def __init__(self, read_func = ps_data.open_ps_2007):
