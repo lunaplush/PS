@@ -4,6 +4,7 @@
 #pip install git+https://github.com/pybrain/pybrain.git@0.3.3
 
 
+#deep.uran.ru/wiki/index.php?title=Эксперименты_с_многослойным_перцептроном_в_Keras
 import numpy as np
 
 
@@ -161,7 +162,7 @@ Z = model.predict_on_batch(data)
 
 res_Z_bin = Z.argmax(axis = 1)
 XZ0 = data[(res_Z_bin == 0)]
-plt.scatter(XZ0[:,0],XZ0[:,1], color = "red")
+plt.scatter(XZ0[:,0],XZ0[:,1], color = "red", alpha = 0.3)
 #X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
 #plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
