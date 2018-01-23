@@ -1,5 +1,5 @@
  
-
+HOTFIX
 #pip install git+https://github.com/pybrain/pybrain.git@0.3.3
 
 
@@ -56,11 +56,9 @@ for i in range(k):
         ds.addSample(input,[1])
         ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
         
-#for i in range(k*K):
-#    ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
-        
-        
+      
 
+<<<<<<< HEAD
 #%%
 #mean = [0,0]
 ##mean = [0]
@@ -75,6 +73,8 @@ for i in range(k):
     
 
 
+=======
+>>>>>>> master
 
 #%%
 
