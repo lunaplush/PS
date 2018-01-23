@@ -1,5 +1,4 @@
- 
-HOTFIX
+
 #pip install git+https://github.com/pybrain/pybrain.git@0.3.3
 
 
@@ -31,7 +30,7 @@ from pybrain.structure import FullConnection
 from pybrain.structure import FeedForwardNetwork
 #%matplotlib inline
 #%%
-
+os.chdir("d:\\Luna\\python\\PS\\")
 #X, y = make_classification(n_features=100, n_samples=1000)
  
 #N = 16
@@ -66,7 +65,7 @@ for i in range(k):
         ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
         
       
-
+#ds._convertToOneOfMany()
 
 #%%
 
@@ -74,13 +73,14 @@ for i in range(k):
 TRAIN_SIZE = 0.7 # Разделение данных на обучающую и контрольную части в пропорции 70/30%
 #from sklearn.model_selection import train_test_split
 
+
 ds_train, ds_test = ds.splitWithProportion(TRAIN_SIZE)
 
 
 #%%
 # Определение основных констант
-HIDDEN_NEURONS_NUM = 20 # Количество нейронов, содержащееся в скрытом слое сети
-HIDDEN_NEURONS_NUM2 = 10
+HIDDEN_NEURONS_NUM = 10 # Количество нейронов, содержащееся в скрытом слое сети
+HIDDEN_NEURONS_NUM2 = 20
 MAX_EPOCHS = 250
 
 
@@ -101,12 +101,13 @@ outLayer = LinearLayer(1)
 
 net.addInputModule(inLayer)
 net.addModule(hiddenLayer)
-net.addModule(hiddenLayer2)
+#net.addModule(hiddenLayer2)
 net.addOutputModule(outLayer)
 
 net.addConnection(FullConnection(inLayer, hiddenLayer))
-net.addConnection(FullConnection(hiddenLayer,hiddenLayer2))
-net.addConnection(FullConnection(hiddenLayer2, outLayer))
+#net.addConnection(FullConnection(hiddenLayer,hiddenLayer2))
+#net.addConnection(FullConnection(hiddenLayer2, outLayer))
+net.addConnection(FullConnection(hiddenLayer, outLayer))
 net.sortModules()
 #net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim, bias=True,outclass=SoftmaxLayer)
 # ds.indim -- количество нейронов входного слоя, равне количеству признаков
@@ -148,8 +149,10 @@ print('Error on test: ', percentError(res_test_bin, ds_test['target'])) # Под
 #%%
 
 
-
-
+XZ0 = data[(res_Z_bin == 0)]
+plt.scatter(XZ0[:,0],XZ0[:,1], color = "red", alpha = 0.4)
+XZ1 = data[(res_Z_bin == 1)]
+plt.scatter(XZ1[:,0],XZ1[:,1], color = "blue", alpha = 0.4)
 X1 = ds_train['input'][(ds_train['target'] == 1).flatten()]
 X2 = ds_train['input'][(ds_train['target'] == 0).flatten()]
 plt.scatter(X1[:,0],X1[:,1])
@@ -165,8 +168,7 @@ for i in Z:
     else:
         res_Z_bin.append(0)
 res_Z_bin = np.array(res_Z_bin)
-XZ0 = data[(res_Z_bin == 0)]
-plt.scatter(XZ0[:,0],XZ0[:,1], color = "green")
+plt.savefig("exp1.jpg")
 #X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
 #plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
