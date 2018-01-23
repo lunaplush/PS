@@ -1,5 +1,6 @@
  
-HOTFIX
+#pip install keras
+
 #pip install git+https://github.com/pybrain/pybrain.git@0.3.3
 
 
@@ -58,23 +59,7 @@ for i in range(k):
         
       
 
-<<<<<<< HEAD
-#%%
-#mean = [0,0]
-##mean = [0]
-#cov = [[0.01,0],[0,10]]
-##cov = [0.1]
-#x,y =  np.random.multivariate_normal(mean,cov,5000).T
-#plt.plot(x,y,'b')
-#plt.axis('equal')
-#plt.xticks(np.linspace(-20,20,13))
-#
-#plt.show()
-    
 
-
-=======
->>>>>>> master
 
 #%%
 
