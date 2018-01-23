@@ -163,6 +163,7 @@ Z = model.predict_on_batch(data)
 res_Z_bin = Z.argmax(axis = 1)
 XZ0 = data[(res_Z_bin == 0)]
 plt.scatter(XZ0[:,0],XZ0[:,1], color = "red", alpha = 0.3)
+plt.savefig("exp3.jpg")
 #X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
 #plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
