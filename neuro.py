@@ -25,7 +25,10 @@ from pybrain.datasets import ClassificationDataSet # Структура данн
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure.modules import SoftmaxLayer
+from pybrain.structure import LinearLayer, SigmoidLayer
 from pybrain.utilities import percentError
+from pybrain.structure import FullConnection
+from pybrain.structure import FeedForwardNetwork
 #%matplotlib inline
 #%%
 
@@ -100,7 +103,8 @@ ds_train, ds_test = ds.splitWithProportion(TRAIN_SIZE)
 
 #%%
 # Определение основных констант
-HIDDEN_NEURONS_NUM = 40 # Количество нейронов, содержащееся в скрытом слое сети
+HIDDEN_NEURONS_NUM = 20 # Количество нейронов, содержащееся в скрытом слое сети
+HIDDEN_NEURONS_NUM2 = 10
 MAX_EPOCHS = 250
 
 
@@ -113,7 +117,22 @@ MAX_EPOCHS = 250
 
 #%%
 np.random.seed(0)
-net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim, bias=True,outclass=SoftmaxLayer)
+net = FeedForwardNetwork()
+inLayer = LinearLayer(N)
+hiddenLayer = SigmoidLayer(HIDDEN_NEURONS_NUM)
+hiddenLayer2 = SigmoidLayer(HIDDEN_NEURONS_NUM2)
+outLayer = LinearLayer(1)
+
+net.addInputModule(inLayer)
+net.addModule(hiddenLayer)
+net.addModule(hiddenLayer2)
+net.addOutputModule(outLayer)
+
+net.addConnection(FullConnection(inLayer, hiddenLayer))
+net.addConnection(FullConnection(hiddenLayer,hiddenLayer2))
+net.addConnection(FullConnection(hiddenLayer2, outLayer))
+net.sortModules()
+#net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim, bias=True,outclass=SoftmaxLayer)
 # ds.indim -- количество нейронов входного слоя, равне количеству признаков
 # ds.outdim -- количество нейронов выходного слоя, равное количеству меток классов
 # SoftmaxLayer -- функция активации, пригодная для решения задачи многоклассовой классификации
