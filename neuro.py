@@ -65,32 +65,8 @@ for i in range(k):
         ds.addSample(input,[1])
         ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
         
-#for i in range(k*K):
-#    ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
-        
-        
+      
 
-#%%
-#mean = [0,0]
-##mean = [0]
-#cov = [[0.01,0],[0,10]]
-##cov = [0.1]
-#x,y =  np.random.multivariate_normal(mean,cov,5000).T
-#plt.plot(x,y,'b')
-#plt.axis('equal')
-#plt.xticks(np.linspace(-20,20,13))
-#
-#plt.show()
-    
-
-a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
-b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
-X1 = np.hstack((a,b))
-a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
-b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
-X0 = np.hstack((a,b))
-plt.scatter(X1[:,0],X1[:,1])
-plt.scatter(X0[:,0],X0[:,1], color = "red")
 
 #%%
 
