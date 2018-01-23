@@ -20,6 +20,14 @@ from scipy import diag,arange
 
 
 from sklearn.datasets import make_classification
+#%%
+
+from keras.model import Sequental
+from keras.layers import Dense
+
+#%%
+model = Sequental()
+model.add(Dence(units =10,activation ="relu"))
 
 
 #%%
