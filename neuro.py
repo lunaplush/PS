@@ -36,13 +36,15 @@ N=2
 k = 100
 K = 2 #clusters
 
+dl = 35
 np.random.seed(0)
 #corresponds to N, K
 #means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
-cov =[diag([0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35]), diag([0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35])]
+#cov =[diag([0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35]), diag([0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35])]
+
 ch1 = 0
 means =[(0.1,0.1), (0.4,0.5)]
-cov =[diag([0.1/35,0.05/35]), diag([0.2/35,0.05/35])]
+cov =[diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl])]
 
 ds = ClassificationDataSet(N,nb_classes = 2)
 for i in range(k):
@@ -111,7 +113,7 @@ MAX_EPOCHS = 250
 
 #%%
 np.random.seed(0)
-net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim, bias=True)
+net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim, bias=True,outclass=SoftmaxLayer)
 # ds.indim -- количество нейронов входного слоя, равне количеству признаков
 # ds.outdim -- количество нейронов выходного слоя, равное количеству меток классов
 # SoftmaxLayer -- функция активации, пригодная для решения задачи многоклассовой классификации
@@ -129,10 +131,11 @@ ylab = plt.ylabel('Error')
 
 #%%
 #ROC - кривые - порог
+grance = 0.5
 res_train = net.activateOnDataset(ds_train) # Подсчет результата на обучающей выборке
 res_train_bin = []
 for i in res_train:
-    if  i > 0.5:
+    if  i > grance:
         res_train_bin.append(1)
     else:
         res_train_bin.append(0)
@@ -141,31 +144,37 @@ print('Error on train: ', percentError(res_train_bin, ds_train['target'])) # П�
 res_test = net.activateOnDataset(ds_test) # Подсчет результата на тестовой выборке
 res_test_bin = []
 for i in res_test:
-    if  i > 0.5:
+    if  i > grance:
         res_test_bin.append(1)
     else:
         res_test_bin.append(0)
 print('Error on test: ', percentError(res_test_bin, ds_test['target'])) # Подсчет ошибки
 
-
 #%%
 
 
-a = np.array([ds_train['input'][i][0] for i in arange(280) if ds_train['target'][i] == 1]).reshape(144,1)
-b = np.array([ds_train['input'][i][1] for i in arange(280) if ds_train['target'][i] == 1]).reshape(144,1)
-X1 = np.hstack((a,b))
-a = np.array([ds_train['input'][i][0] for i in arange(280) if ds_train['target'][i] == 0]).reshape(136,1)
-b = np.array([ds_train['input'][i][1] for i in arange(280) if ds_train['target'][i] == 0]).reshape(136,1)
-X0 = np.hstack((a,b))
 
 
-
+X1 = ds_train['input'][(ds_train['target'] == 1).flatten()]
+X2 = ds_train['input'][(ds_train['target'] == 0).flatten()]
 plt.scatter(X1[:,0],X1[:,1])
 plt.scatter(X0[:,0],X0[:,1], color = "red")
 
+xx,yy = np.meshgrid(np.arange(0,1,0.01), np.arange(0,1,0.01))
+data = np.c_[xx.ravel(),yy.ravel()] 
+Z = [net.activate(i) for i in data]
+res_Z_bin = []
+for i in Z:
+    if  i > grance:
+        res_Z_bin.append(1)
+    else:
+        res_Z_bin.append(0)
+res_Z_bin = np.array(res_Z_bin)
+XZ0 = data[(res_Z_bin == 0)]
+plt.scatter(XZ0[:,0],XZ0[:,1], color = "green")
+#X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
-X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
-plt.scatter(X3[:,0],X3[:,1], color = "green")
+#plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
 #class PsData:
 #    name = "PsData class"
 #    def __init__(self, read_func = ps_data.open_ps_2007):
