@@ -20,16 +20,7 @@ from scipy import diag,arange
 
 from sklearn.datasets import make_classification
 
-#%%
-from pybrain.datasets import ClassificationDataSet # Структура данных pybrain
-from pybrain.tools.shortcuts import buildNetwork
-from pybrain.supervised.trainers import BackpropTrainer
-from pybrain.structure.modules import SoftmaxLayer
-from pybrain.structure import LinearLayer, SigmoidLayer
-from pybrain.utilities import percentError
-from pybrain.structure import FullConnection
-from pybrain.structure import FeedForwardNetwork
-#%matplotlib inline
+
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
@@ -83,14 +74,7 @@ for i in range(k):
 #plt.show()
     
 
-a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
-b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 1]).reshape(K*k,1)
-X1 = np.hstack((a,b))
-a = np.array([ds['input'][i][0] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
-b = np.array([ds['input'][i][1] for i in arange(K*k*2) if ds['target'][i] == 0]).reshape(K*k,1)
-X0 = np.hstack((a,b))
-plt.scatter(X1[:,0],X1[:,1])
-plt.scatter(X0[:,0],X0[:,1], color = "red")
+
 
 #%%
 
