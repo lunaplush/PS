@@ -1,14 +1,15 @@
  
 #pip install keras
-
+#pip install tensorflow
 #pip install git+https://github.com/pybrain/pybrain.git@0.3.3
 
 
 import numpy as np
-import pandas as pd
+
+
+
+
 import matplotlib.pyplot as plt
-import seaborn as sns
-import sklearn as skl
 from sklearn import svm
 from sklearn.cross_validation import train_test_split,cross_val_score,StratifiedShuffleSplit
 from sklearn.preprocessing import StandardScaler
@@ -22,13 +23,24 @@ from scipy import diag,arange
 from sklearn.datasets import make_classification
 #%%
 
-from keras.model import Sequental
-from keras.layers import Dense
+from keras.models import Sequential
+from keras.layers.core import Dense
+from keras.utils import np_utils
 
-#%%
-model = Sequental()
-model.add(Dence(units =10,activation ="relu"))
 
+
+#model = Sequental()
+#model.add(Dense(units =10,activation ="relu"))
+#model.add(Dence(units=1, activation ="sigmoid"))
+#model.compile() #prepaire model
+#
+#model.fit(x_train, y_train,epoch = 5, batch_size = 32)
+#
+#
+#model.train_on_batch(x_batch, y_batch)
+#loss_and_metricks = model.evaluate(x_test, y_test, batch_size = 128)
+#
+#classes = model.predict(x_test, batch_size = 128)
 
 #%%
 
@@ -49,7 +61,8 @@ ch1 = 0
 means =[(0.1,0.1), (0.4,0.5)]
 cov =[diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl])]
 
-ds = ClassificationDataSet(N,nb_classes = 2)
+X = []
+y = []
 for i in range(k):
     for cluster in range(K):
        
@@ -62,27 +75,36 @@ for i in range(k):
            if input[j] < 0:
                input[j] = means[cluster][j]
                ch1+=1
-        ds.addSample(input,[1])
-        ds.addSample(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))),[0])
+        X.append(input)
+        y.append(1)
+        X.append(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))))
+        y.append(0)
         
-      
+        
+X= np.array(X)
+y= np.array(y)
 
 
 
 #%%
 
+nb_classes = 2
+
+#%%
 
 TRAIN_SIZE = 0.7 # Разделение данных на обучающую и контрольную части в пропорции 70/30%
 #from sklearn.model_selection import train_test_split
 
-ds_train, ds_test = ds.splitWithProportion(TRAIN_SIZE)
+X_train,X_test,y_train,y_test = train_test_split(X,y, train_size =TRAIN_SIZE, random_state = 10)
 
+Y_train = np_utils.to_categorical(y_train,nb_classes)
+Y_test = np_utils.to_categorical(y_test,nb_classes)
 
 #%%
 # Определение основных констант
 HIDDEN_NEURONS_NUM = 20 # Количество нейронов, содержащееся в скрытом слое сети
-HIDDEN_NEURONS_NUM2 = 10
-MAX_EPOCHS = 250
+
+MAX_EPOCHS = 50
 
 
 
@@ -93,82 +115,53 @@ MAX_EPOCHS = 250
 
 
 #%%
-#np.random.seed(0)
-#net = FeedForwardNetwork()
-#inLayer = LinearLayer(N)
-#hiddenLayer = SigmoidLayer(HIDDEN_NEURONS_NUM)
-#hiddenLayer2 = SigmoidLayer(HIDDEN_NEURONS_NUM2)
-#outLayer = LinearLayer(1)
-#
-#net.addInputModule(inLayer)
-#net.addModule(hiddenLayer)
-#net.addModule(hiddenLayer2)
-#net.addOutputModule(outLayer)
-#
-#net.addConnection(FullConnection(inLayer, hiddenLayer))
-#net.addConnection(FullConnection(hiddenLayer,hiddenLayer2))
-#net.addConnection(FullConnection(hiddenLayer2, outLayer))
-#net.sortModules()
-#%%
-#net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim, bias=True,outclass=SoftmaxLayer)
-# ds.indim -- количество нейронов входного слоя, равне количеству признаков
-# ds.outdim -- количество нейронов выходного слоя, равное количеству меток классов
-# SoftmaxLayer -- функция активации, пригодная для решения задачи многоклассовой классификации
-
-init_params = np.random.random(( len(net.params))) # Инициализируем веса сети для получения воспроизводимого результата
-net._setParameters(init_params)
-#%% 
 np.random.seed(0)
-# Модуль настройки параметров pybrain использует модуль random; зафиксируем seed для получения воспроизводимого результата
-trainer = BackpropTrainer(net, dataset=ds_train) # Инициализируем модуль оптимизации
-err_train, err_val = trainer.trainUntilConvergence(maxEpochs=MAX_EPOCHS)
-line_train = plt.plot(err_train, 'b', err_val, 'r') # Построение графика
-xlab = plt.xlabel('Iterations')
-ylab = plt.ylabel('Error')
+model = Sequential()
+model.add(Dense(units = HIDDEN_NEURONS_NUM,input_dim = N,activation = "relu"))
+model.add(Dense(units = nb_classes,activation = "softmax"))
+model.compile(optimizer = 'adam',loss='categorical_crossentropy', metrics=['accuracy'])
+
+#%%
+model.fit(X_train,Y_train,batch_size = 32,nb_epoch = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
+
+#%%
+score  = model.evaluate(X_test,Y_test,verbose =0)
+print('Test score:',score[0])
+print('Test accuracy:',score[1])
+
+
+ 
 
 #%%
 #ROC - кривые - порог
-grance = 0.5
-res_train = net.activateOnDataset(ds_train) # Подсчет результата на обучающей выборке
-res_train_bin = []
-for i in res_train:
-    if  i > grance:
-        res_train_bin.append(1)
-    else:
-        res_train_bin.append(0)
+res_train= model.predict_on_batch(X_train)
+#grance = 0.5
+res_train_bin = res_train.argmax(axis = 1)
         
-print('Error on train: ', percentError(res_train_bin, ds_train['target'])) # Подсчет ошибки
-res_test = net.activateOnDataset(ds_test) # Подсчет результата на тестовой выборке
-res_test_bin = []
-for i in res_test:
-    if  i > grance:
-        res_test_bin.append(1)
-    else:
-        res_test_bin.append(0)
-print('Error on test: ', percentError(res_test_bin, ds_test['target'])) # Подсчет ошибки
+print('Error on train: ', percentError(res_train_bin, y_train)) # Подсчет ошибки
+
+res_test = model.predict_on_batch(X_test) # Подсчет результата на тестовой выборке
+res_test_bin = res_test.argmax(axis = 1)
+print('Error on test: ', percentError(res_test_bin,y_test)) # Подсчет ошибки
 
 #%%
 
 
 
 
-X1 = ds_train['input'][(ds_train['target'] == 1).flatten()]
-X2 = ds_train['input'][(ds_train['target'] == 0).flatten()]
+X1 = X_train[(y_train == 1).flatten()]
+X0 = X_train[(y_train == 0).flatten()]
 plt.scatter(X1[:,0],X1[:,1])
 plt.scatter(X0[:,0],X0[:,1], color = "red")
 
 xx,yy = np.meshgrid(np.arange(0,1,0.01), np.arange(0,1,0.01))
 data = np.c_[xx.ravel(),yy.ravel()] 
-Z = [net.activate(i) for i in data]
-res_Z_bin = []
-for i in Z:
-    if  i > grance:
-        res_Z_bin.append(1)
-    else:
-        res_Z_bin.append(0)
-res_Z_bin = np.array(res_Z_bin)
+
+Z = model.predict_on_batch(data)
+
+res_Z_bin = Z.argmax(axis = 1)
 XZ0 = data[(res_Z_bin == 0)]
-plt.scatter(XZ0[:,0],XZ0[:,1], color = "green")
+plt.scatter(XZ0[:,0],XZ0[:,1], color = "red")
 #X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
 #plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
