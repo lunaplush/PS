@@ -45,11 +45,11 @@ from pybrain.utilities           import percentError
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
- 
+EXP_NUM = 17
 #N = 16
 N=2
-k = 100
-K = 3 #clusters
+k = 50
+K = 2 #clusters
 
 dl = 35
 np.random.seed(0)
@@ -58,7 +58,7 @@ np.random.seed(0)
 #cov =[diag([0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35]), diag([0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35])]
 
 ch1 = 0
-means =[(0.5,0.5), (0.3,0.5), (0.4,0.6)]
+means =[(0.25,0.25), (0.75,0.75), (0.1,0.1)]
 cov =[diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl])]
 
 X = []
@@ -99,12 +99,13 @@ X_train,X_test,y_train,y_test = train_test_split(X,y, train_size =TRAIN_SIZE, ra
 
 Y_train = np_utils.to_categorical(y_train,nb_classes)
 Y_test = np_utils.to_categorical(y_test,nb_classes)
-
+#Где гарантия, что бинарные представления классов будут одинаковы для разных запуском функции 
+#to_categorical для одной задачи.
 #%%
 # Определение основных констант
-HIDDEN_NEURONS_NUM = 50 # Количество нейронов, содержащееся в скрытом слое сети
-
-MAX_EPOCHS = 50
+HIDDEN_NEURONS_NUM = 15 # Количество нейронов, содержащееся в скрытом слое сети
+HIDDEN_NEURONS_NUM_2 = 15
+MAX_EPOCHS =1500
 
 
 
@@ -118,11 +119,12 @@ MAX_EPOCHS = 50
 np.random.seed(0)
 model = Sequential()
 model.add(Dense(units = HIDDEN_NEURONS_NUM,input_dim = N,activation = "relu"))
+model.add(Dense(units = HIDDEN_NEURONS_NUM_2,activation ="relu"))
 model.add(Dense(units = nb_classes,activation = "softmax"))
 model.compile(optimizer = 'adam',loss='categorical_crossentropy', metrics=['accuracy'])
 
 #%%
-model.fit(X_train,Y_train,batch_size = 32,nb_epoch = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
+model.fit(X_train,Y_train,batch_size = 1,nb_epoch = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
 
 #%%
 score  = model.evaluate(X_test,Y_test,verbose =0)
@@ -163,7 +165,7 @@ res_Z_bin = Z.argmax(axis = 1)
 XZ0 = data[(res_Z_bin == 0)]
 plt.scatter(XZ0[:,0],XZ0[:,1], color = "red", alpha = 0.3)
 plt.text(0.9,0.9,s = "{:3f}".format(score[1]))
-plt.savefig("exp10.jpg")
+plt.savefig("exp{}.jpg".format(EXP_NUM))
 #X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
 #plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
