@@ -6,7 +6,7 @@
 
 #deep.uran.ru/wiki/index.php?title=Эксперименты_с_многослойным_перцептроном_в_Keras
 import numpy as np
-
+import time
 
 
 
@@ -28,6 +28,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense
 from keras.utils import np_utils
 from pybrain.utilities           import percentError
+from keras import backend
 
 #model = Sequental()
 #model.add(Dense(units =10,activation ="relu"))
@@ -41,11 +42,13 @@ from pybrain.utilities           import percentError
 #loss_and_metricks = model.evaluate(x_test, y_test, batch_size = 128)
 #
 #classes = model.predict(x_test, batch_size = 128)
+#%%
+
 
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 17
+EXP_NUM = 17 
 #N = 16
 N=2
 k = 50
@@ -98,14 +101,15 @@ TRAIN_SIZE = 0.7 # Разделение данных на обучающую и 
 X_train,X_test,y_train,y_test = train_test_split(X,y, train_size =TRAIN_SIZE, random_state = 10)
 
 Y_train = np_utils.to_categorical(y_train,nb_classes)
-Y_test = np_utils.to_categorical(y_test,nb_classes)
+Y_test = np_utils.to_categorical(y_tes
+                                 t,nb_classes)
 #Где гарантия, что бинарные представления классов будут одинаковы для разных запуском функции 
 #to_categorical для одной задачи.
 #%%
 # Определение основных констант
 HIDDEN_NEURONS_NUM = 15 # Количество нейронов, содержащееся в скрытом слое сети
 HIDDEN_NEURONS_NUM_2 = 15
-MAX_EPOCHS =1500
+MAX_EPOCHS =1
 
 
 
@@ -124,7 +128,9 @@ model.add(Dense(units = nb_classes,activation = "softmax"))
 model.compile(optimizer = 'adam',loss='categorical_crossentropy', metrics=['accuracy'])
 
 #%%
+a = time.time()    
 model.fit(X_train,Y_train,batch_size = 1,nb_epoch = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
+resTime = time.time() - a
 
 #%%
 score  = model.evaluate(X_test,Y_test,verbose =0)
@@ -165,7 +171,7 @@ res_Z_bin = Z.argmax(axis = 1)
 XZ0 = data[(res_Z_bin == 0)]
 plt.scatter(XZ0[:,0],XZ0[:,1], color = "red", alpha = 0.3)
 plt.text(0.9,0.9,s = "{:3f}".format(score[1]))
-plt.savefig("exp{}.jpg".format(EXP_NUM))
+plt.savefig("exp{}_3.jpg".format(EXP_NUM))
 #X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
 #plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
