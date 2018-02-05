@@ -29,6 +29,14 @@ from keras.layers.core import Dense
 from keras.utils import np_utils
 from pybrain.utilities           import percentError
 from keras import backend
+from keras  import metrics
+#%%
+
+#def mean_pred(y_true,y_pred):
+#    with backend.tf.Session() as sess:
+#        a = sess.run(y_true)
+#        b = sess.run(y_pred)
+#    return backend.mean(y_pred)
 
 #model = Sequental()
 #model.add(Dense(units =10,activation ="relu"))
@@ -48,11 +56,11 @@ from keras import backend
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 17 
+EXP_NUM = 20  
 #N = 16
 N=2
-k = 50
-K = 2 #clusters
+k = 100
+K = 1 #clusters
 
 dl = 35
 np.random.seed(0)
@@ -64,6 +72,7 @@ ch1 = 0
 means =[(0.25,0.25), (0.75,0.75), (0.1,0.1)]
 cov =[diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl])]
 
+#%%
 X = []
 y = []
 for i in range(k):
@@ -101,17 +110,18 @@ TRAIN_SIZE = 0.7 # Разделение данных на обучающую и 
 X_train,X_test,y_train,y_test = train_test_split(X,y, train_size =TRAIN_SIZE, random_state = 10)
 
 Y_train = np_utils.to_categorical(y_train,nb_classes)
-Y_test = np_utils.to_categorical(y_tes
-                                 t,nb_classes)
+Y_test = np_utils.to_categorical(y_test,nb_classes)
 #Где гарантия, что бинарные представления классов будут одинаковы для разных запуском функции 
 #to_categorical для одной задачи.
 #%%
 # Определение основных констант
-HIDDEN_NEURONS_NUM = 15 # Количество нейронов, содержащееся в скрытом слое сети
+HIDDEN_NEURONS_NUM = 5 # Количество нейронов, содержащееся в скрытом слое сети
 HIDDEN_NEURONS_NUM_2 = 15
-MAX_EPOCHS =1
+MAX_EPOCHS =100
 
-
+activation1= 'relu' #'relu'
+activation2='sigmoid'
+optimizer_zn =  "adam" # "rmsprop"
 
 
  # Максимальное число итераций алгоритма оптимизации параметров сети
@@ -122,35 +132,37 @@ MAX_EPOCHS =1
 #%%
 np.random.seed(0)
 model = Sequential()
-model.add(Dense(units = HIDDEN_NEURONS_NUM,input_dim = N,activation = "relu"))
-model.add(Dense(units = HIDDEN_NEURONS_NUM_2,activation ="relu"))
+model.add(Dense(units = HIDDEN_NEURONS_NUM,input_dim = N,activation = activation1))
+model.add(Dense(units = HIDDEN_NEURONS_NUM_2,activation = activation2))
 model.add(Dense(units = nb_classes,activation = "softmax"))
-model.compile(optimizer = 'adam',loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer = optimizer_zn,loss='categorical_crossentropy', metrics=['accuracy'])
 
 #%%
 a = time.time()    
-model.fit(X_train,Y_train,batch_size = 1,nb_epoch = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
-resTime = time.time() - a
+fit_info = model.fit(X_train,Y_train,batch_size = 1,epochs = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
+resTime = time.time() - a #in seconds
 
 #%%
-score  = model.evaluate(X_test,Y_test,verbose =0)
-print('Test score:',score[0])
-print('Test accuracy:',score[1])
+score_test  = model.evaluate(X_test,Y_test,verbose =0)
+#print('Test score:',score_test[0])
+print('Test accuracy:',score_test[1])
 
-
+score_train  = model.evaluate(X_train,Y_train,verbose =0)
+#print('Train score:',score_train[0])
+print('Train accuracy:',score_train[1])
  
 
 #%%
 #ROC - кривые - порог
-res_train= model.predict_on_batch(X_train)
-#grance = 0.5
-res_train_bin = res_train.argmax(axis = 1)
-        
-print('Error on train: ', percentError(res_train_bin, y_train)) # Подсчет ошибки
-
-res_test = model.predict_on_batch(X_test) # Подсчет результата на тестовой выборке
-res_test_bin = res_test.argmax(axis = 1)
-print('Error on test: ', percentError(res_test_bin,y_test)) # Подсчет ошибки
+#res_train= model.predict_on_batch(X_train)
+##grance = 0.5
+#res_train_bin = res_train.argmax(axis = 1)
+#        
+#print('Error on train: ', percentError(res_train_bin, y_train)) # Подсчет ошибки
+#
+#res_test = model.predict_on_batch(X_test) # Подсчет результата на тестовой выборке
+#res_test_bin = res_test.argmax(axis = 1)
+#print('Error on test: ', percentError(res_test_bin,y_test)) # Подсчет ошибки
 
 #%%
 
@@ -170,8 +182,9 @@ Z = model.predict_on_batch(data)
 res_Z_bin = Z.argmax(axis = 1)
 XZ0 = data[(res_Z_bin == 0)]
 plt.scatter(XZ0[:,0],XZ0[:,1], color = "red", alpha = 0.3)
-plt.text(0.9,0.9,s = "{:3f}".format(score[1]))
-plt.savefig("exp{}_3.jpg".format(EXP_NUM))
+plt.text(1,1.1,s = "Train {:3f}".format(score_train[1]))
+plt.text(1,1,s = "Test {:3f}".format(score_test[1]))
+plt.savefig("exp{}.jpg".format(EXP_NUM))
 #X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
 #plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
