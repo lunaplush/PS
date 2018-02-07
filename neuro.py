@@ -1,4 +1,4 @@
- New Branch
+ 
 #pip install keras
 #pip install tensorflow
 #pip install git+https://github.com/pybrain/pybrain.git@0.3.3
@@ -49,18 +49,15 @@ from keras  import metrics
 #model.train_on_batch(x_batch, y_batch)
 #loss_and_metricks = model.evaluate(x_test, y_test, batch_size = 128)
 #
-#classes = model.predict(x_test, batch_size = 128)
-#%%
-
-
+#classes = model.predict(x_test, batch_size = 1
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 20  
+EXP_NUM = 22  
 #N = 16
 N=2
-k = 100
-K = 1 #clusters
+k = 50
+K = 2 #clusters
 
 dl = 35
 np.random.seed(0)
@@ -71,6 +68,8 @@ np.random.seed(0)
 ch1 = 0
 means =[(0.25,0.25), (0.75,0.75), (0.1,0.1)]
 cov =[diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl])]
+
+
 
 #%%
 X = []
@@ -115,31 +114,41 @@ Y_test = np_utils.to_categorical(y_test,nb_classes)
 #to_categorical для одной задачи.
 #%%
 # Определение основных констант
-HIDDEN_NEURONS_NUM = 5 # Количество нейронов, содержащееся в скрытом слое сети
+HIDDEN_NEURONS_NUM = 15 # Количество нейронов, содержащееся в скрытом слое сети
 HIDDEN_NEURONS_NUM_2 = 15
-MAX_EPOCHS =100
 
-activation1= 'relu' #'relu'
-activation2='sigmoid'
+MAX_EPOCHS = 2500
+
+BATCH_SIZE = 1
+
+activation_layer1= 'sigmoid' #'relu'
+activation_layer2='sigmoid'
 optimizer_zn =  "adam" # "rmsprop"
+loss_func = 'categorical_crossentropy'
 
 
  # Максимальное число итераций алгоритма оптимизации параметров сети
 
+
+#%%
+#Parameters for groups of experiments
+#Серию экспериментов будем ставить на одних и тех же входных данных, менять только стркутуру сети, батчи , способ обучения
 
 
 
 #%%
 np.random.seed(0)
 model = Sequential()
-model.add(Dense(units = HIDDEN_NEURONS_NUM,input_dim = N,activation = activation1))
-model.add(Dense(units = HIDDEN_NEURONS_NUM_2,activation = activation2))
+model.add(Dense(units = HIDDEN_NEURONS_NUM,input_dim = N,activation = activation_layer1))
+model.add(Dense(units = HIDDEN_NEURONS_NUM_2,activation = activation_layer2))
 model.add(Dense(units = nb_classes,activation = "softmax"))
-model.compile(optimizer = optimizer_zn,loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer = optimizer_zn,loss= loss_func, metrics=['accuracy'])
 
 #%%
 a = time.time()    
-fit_info = model.fit(X_train,Y_train,batch_size = 1,epochs = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
+# = True
+#while  flag
+fit_info = model.fit(X_train,Y_train,batch_size = BATCH_SIZE,epochs = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
 resTime = time.time() - a #in seconds
 
 #%%
