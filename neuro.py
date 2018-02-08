@@ -24,7 +24,8 @@ from scipy import diag,arange
 from sklearn.datasets import make_classification
 #%%
 
-from keras.models import Sequential
+from keras.models import Sequential, load_model
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers.core import Dense
 from keras.utils import np_utils
 from pybrain.utilities           import percentError
@@ -117,12 +118,12 @@ Y_test = np_utils.to_categorical(y_test,nb_classes)
 HIDDEN_NEURONS_NUM = 15 # Количество нейронов, содержащееся в скрытом слое сети
 HIDDEN_NEURONS_NUM_2 = 15
 
-MAX_EPOCHS = 2500
+MAX_EPOCHS = 150
 
 BATCH_SIZE = 1
 
-activation_layer1= 'sigmoid' #'relu'
-activation_layer2='sigmoid'
+activation_layer1= 'relu' #'relu'
+activation_layer2='relu'
 optimizer_zn =  "adam" # "rmsprop"
 loss_func = 'categorical_crossentropy'
 
@@ -145,10 +146,12 @@ model.add(Dense(units = nb_classes,activation = "softmax"))
 model.compile(optimizer = optimizer_zn,loss= loss_func, metrics=['accuracy'])
 
 #%%
+checkpointer = ModelCheckpoint(filepath = "models/exp.hdf5",verbose = 0,save_best_only = 1, save_weights_only = 1)
+earlystopper = EarlyStopping(monitor ="val_acc", verbose = 0 , mode = "auto")
 a = time.time()    
 # = True
 #while  flag
-fit_info = model.fit(X_train,Y_train,batch_size = BATCH_SIZE,epochs = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test))
+fit_info = model.fit(X_train,Y_train,batch_size = BATCH_SIZE,epochs = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test), callbacks = [checkpointer])
 resTime = time.time() - a #in seconds
 
 #%%
