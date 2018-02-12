@@ -23,7 +23,7 @@ from scipy import diag,arange
 
 from sklearn.datasets import make_classification
 #%%
-
+import keras as ks
 from keras.models import Sequential, load_model
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers.core import Dense
@@ -31,8 +31,9 @@ from keras.utils import np_utils
 from pybrain.utilities           import percentError
 from keras import backend
 from keras  import metrics
+import pandas as pd 
+#os.chdir("c:\\Luna\\Work\\python\\PS")
 #%%
-
 #def mean_pred(y_true,y_pred):
 #    with backend.tf.Session() as sess:
 #        a = sess.run(y_true)
@@ -54,11 +55,11 @@ from keras  import metrics
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 22  
+EXP_NUM = 23  
 #N = 16
 N=2
-k = 50
-K = 2 #clusters
+k = 100
+K = 1 #clusters
 
 dl = 35
 np.random.seed(0)
@@ -66,44 +67,98 @@ np.random.seed(0)
 #means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
 #cov =[diag([0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35]), diag([0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35])]
 
-ch1 = 0
-means =[(0.25,0.25), (0.75,0.75), (0.1,0.1)]
-cov =[diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl])]
-
-
-
-#%%
-X = []
-y = []
-for i in range(k):
-    for cluster in range(K):
-       
-        input = np.random.multivariate_normal(means[cluster],cov[cluster])
-        
-        for j in range(N):
-           if input[j] > 1:
-               input[j] = means[cluster][j]
-               ch1+= 1
-           if input[j] < 0:
-               input[j] = means[cluster][j]
-               ch1+=1
-        X.append(input)
-        y.append(1)
-        X.append(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))))
-        y.append(0)
-        
-        
-X= np.array(X)
-y= np.array(y)
-
+means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
+cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
+  
 
 
 #%%
+class DataParams:
+    #N = 2
+    #k = 100
+    #K = 1
+    #means =[(0.25,0.25)]
+    #cov = [diag([0.1/35, 0.05/35])]
+    exp_num = EXP_NUM
+    
+    def __init__ (self, N = 2,k = 100,K = 1, means =[(0.25,0.25)], cov = [diag([0.1/35, 0.05/35])]):
+        self.N = N 
+        self.k = k 
+        self.K = K
+        self.means = means
+        self.cov = cov
+    def set_params(self,N,k,K,means,cov):
+        self.N = N 
+        self.k = k 
+        self.K = K
+        self.means = means
+        self.cov = cov
+        
+    def create_model_data(self):
+        np.random.seed(367)
+        X = []
+        y = []
+        for i in range(self.k):
+            for cluster in range(self.K):
+               
+                input = np.random.multivariate_normal(self.means[cluster],self.cov[cluster])
+                
+                for j in range(self.N):
+                   if input[j] > 1:
+                       input[j] = self.means[cluster][j]
+                       
+                   if input[j] < 0:
+                       input[j] = self.means[cluster][j]
+                       
+                X.append(input)
+                y.append(1)
+                X.append(np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int))))
+                y.append(0)       
+        
+        return (np.array(X),np.array(y))
 
+#%%
+dataParams = DataParams()
+(X,y) = dataParams.create_model_data()
+
+
+#%%
+def visualisation(path,X,y, score_train, score_test, model):
+ 
+
+    X1 = X[(y == 1).flatten()]
+    X0 = X[(y == 0).flatten()]
+    
+    
+    xx,yy = np.meshgrid(np.arange(0,1,0.01), np.arange(0,1,0.01))
+    data = np.c_[xx.ravel(),yy.ravel()] 
+    
+    Z = model.predict_on_batch(data)
+    
+    res_Z_bin = Z.argmax(axis = 1)
+    
+    level = 0.7
+    for i in np.arange(len(Z)): 
+        #print(Z[i])
+        if max(Z[i]) < level:
+            res_Z_bin[i] =  -1
+    
+    XZ0 = data[(res_Z_bin == 0)]
+    XZ1 = data[(res_Z_bin == 1 )]
+    plt.scatter(XZ0[:,0],XZ0[:,1], color = '#881000', alpha = 0.3)
+    plt.scatter(XZ1[:,0],XZ1[:,1], color = "#000083", alpha = 0.3)
+    
+    
+    plt.scatter(X1[:,0],X1[:,1], color = "blue")
+    plt.scatter(X0[:,0],X0[:,1], color = "red")
+    
+    plt.text(1,1.1,s = "Train {:3f}".format(score_train))
+    plt.text(1,1,s = "Test {:3f}".format(score_test))
+    plt.savefig("models/{}/fig.jpg".format(path))
+
+
+#%%
 nb_classes = 2
-
-#%%
-
 TRAIN_SIZE = 0.7 # Разделение данных на обучающую и контрольную части в пропорции 70/30%
 #from sklearn.model_selection import train_test_split
 
@@ -114,58 +169,81 @@ Y_test = np_utils.to_categorical(y_test,nb_classes)
 #Где гарантия, что бинарные представления классов будут одинаковы для разных запуском функции 
 #to_categorical для одной задачи.
 #%%
-# Определение основных констант
-HIDDEN_NEURONS_NUM = 15 # Количество нейронов, содержащееся в скрытом слое сети
-HIDDEN_NEURONS_NUM_2 = 15
-
-MAX_EPOCHS = 150
-
-BATCH_SIZE = 1
-
-activation_layer1= 'relu' #'relu'
-activation_layer2='relu'
-optimizer_zn =  "adam" # "rmsprop"
-loss_func = 'categorical_crossentropy'
-
+class NeuroModel:
+    nb_classes = 2
+    def __init__(self, activation_layer1= 'relu', activation_layer2='sigmoid',  \
+                       optimizer =  "adam", loss_func = 'categorical_crossentropy', code = "ASR"):
+        self.activation_layer1 = activation_layer1 
+        self.activation_layer2 = activation_layer2
+        self.optimizer = optimizer
+        self.loss_func = loss_func
+        self.code = code
+    def compile_model(self, N , hidneuro1 = 10, hidneuro2 = 7, max_epochs = 1500, batch_size = 1):
+        np.random.seed(473)
+        self.batch_size = batch_size
+        self.max_epochs = max_epochs  
+        self.model = Sequential()
+        self.model.add(Dense(units = hidneuro1,input_dim = N,activation = self.activation_layer1))
+        self.model.add(Dense(units = hidneuro2,activation = self.activation_layer2))
+        self.model.add(Dense(units = self.nb_classes,activation = "softmax"))
+        self.model.compile(optimizer = self.optimizer,loss= self.loss_func, metrics=['accuracy'])                  
+    def fit_model(self):
+        h1 = self.model.get_config()[0]['config']['units']
+        h2 = self.model.get_config()[1]['config']['units']
+        model_name = "{}{}_{}".format(self.code,h1,h2)
+        try :
+            os.makedirs("models/{}".format(model_name))
+        except:
+            pass    
+        checkpointer = ModelCheckpoint(filepath = "models/{}/model.h5".format(model_name),verbose = 0,save_best_only = 1, save_weights_only = 1)
+        #earlystopper = EarlyStopping(monitor ="loss", verbose = 0 , mode = "auto")
+        a = time.time()    
+        # = True
+        #while  flag
+        fit_info = self.model.fit(X_train,Y_train,batch_size = self.batch_size,epochs = self.max_epochs,verbose = 0, validation_data =(X_test,Y_test), callbacks = [checkpointer])
+        resTime = time.time() - a #in seconds
+        test_accuracy = max(fit_info.history['val_acc'])
+        num = np.argmax(fit_info.history['val_acc'])
+        train_accuracy = fit_info.history['acc'][num]
+        if N == 2 :
+            visualisation(model_name,X_train, y_train,train_accuracy, test_accuracy, self.model)
+        return [model_name, resTime, train_accuracy, test_accuracy]
+    
 
  # Максимальное число итераций алгоритма оптимизации параметров сети
 
 
 #%%
-#Parameters for groups of experiments
-#Серию экспериментов будем ставить на одних и тех же входных данных, менять только стркутуру сети, батчи , способ обучения
+df = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
 
+neuros_num = [ [i,j] for i in np.arange(4,27) for j in np.arange(4,27)]
+
+for i in np.arange(len(neuros_num)): 
+    try:
+        del model
+    except:
+        pass
+    model = NeuroModel()
+    model.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
+    [model_name, t,acc_train, acc_test] = model.fit_model()
+    s = pd.Series({"model":model_name, "time": t,"acc_train":acc_train, "acc_test":acc_test})
+    df.append(s, ignore_index= True)
+#%%
 
 
 #%%
-np.random.seed(0)
-model = Sequential()
-model.add(Dense(units = HIDDEN_NEURONS_NUM,input_dim = N,activation = activation_layer1))
-model.add(Dense(units = HIDDEN_NEURONS_NUM_2,activation = activation_layer2))
-model.add(Dense(units = nb_classes,activation = "softmax"))
-model.compile(optimizer = optimizer_zn,loss= loss_func, metrics=['accuracy'])
-
-#%%
-checkpointer = ModelCheckpoint(filepath = "models/exp.hdf5",verbose = 0,save_best_only = 1, save_weights_only = 1)
-earlystopper = EarlyStopping(monitor ="val_acc", verbose = 0 , mode = "auto")
-a = time.time()    
-# = True
-#while  flag
-fit_info = model.fit(X_train,Y_train,batch_size = BATCH_SIZE,epochs = MAX_EPOCHS,verbose = 2, validation_data =(X_test,Y_test), callbacks = [checkpointer])
-resTime = time.time() - a #in seconds
-
-#%%
-score_test  = model.evaluate(X_test,Y_test,verbose =0)
-#print('Test score:',score_test[0])
-print('Test accuracy:',score_test[1])
-
-score_train  = model.evaluate(X_train,Y_train,verbose =0)
-#print('Train score:',score_train[0])
-print('Train accuracy:',score_train[1])
- 
+#score_test  = model.evaluate(X_test,Y_test,verbose =0)
+##print('Test score:',score_test[0])
+#print('Test accuracy:',score_test[1])
+#
+#score_train  = model.evaluate(X_train,Y_train,verbose =0)
+##print('Train score:',score_train[0])
+#print('Train accuracy:',score_train[1])
+# 
 
 #%%
 #ROC - кривые - порог
+#res_train= model.predict_on_batch(X_train)
 #res_train= model.predict_on_batch(X_train)
 ##grance = 0.5
 #res_train_bin = res_train.argmax(axis = 1)
@@ -179,24 +257,6 @@ print('Train accuracy:',score_train[1])
 #%%
 
 
-
-
-X1 = X_train[(y_train == 1).flatten()]
-X0 = X_train[(y_train == 0).flatten()]
-plt.scatter(X1[:,0],X1[:,1])
-plt.scatter(X0[:,0],X0[:,1], color = "red")
-
-xx,yy = np.meshgrid(np.arange(0,1,0.01), np.arange(0,1,0.01))
-data = np.c_[xx.ravel(),yy.ravel()] 
-
-Z = model.predict_on_batch(data)
-
-res_Z_bin = Z.argmax(axis = 1)
-XZ0 = data[(res_Z_bin == 0)]
-plt.scatter(XZ0[:,0],XZ0[:,1], color = "red", alpha = 0.3)
-plt.text(1,1.1,s = "Train {:3f}".format(score_train[1]))
-plt.text(1,1,s = "Test {:3f}".format(score_test[1]))
-plt.savefig("exp{}.jpg".format(EXP_NUM))
 #X3 =ds_train['input'][(ds_train['target'].T!=np.array(res_train_bin)).flatten()]    
 
 #plt.scatter(X3[:,0],X3[:,1], color = "green", s = 7,alpha = 0.7)
