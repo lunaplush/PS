@@ -240,8 +240,21 @@ for i in np.arange(len(neuros_num)):
     print("{} done".format(model_name))
 #%%
 df.to_csv("exp_ {}.csv".format(EXP_NUM),sep = ";")
+df["neuro1"] = df.model[:].apply(lambda x : int(x[3:].split("_")[0]))
+df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
 
 #%%
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+n1 = np.arange(4,21,3)
+n2 =  np.arange(5,20,3)
+X3D, Y3D = np.meshgrid(n1, n2)
+surf = ax.scatter(X3D,Y3D,df.acc_train.values, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+surf = ax.plot_surface(X3D,Y3D,df.acc_train.values, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+#fig.colorbar(surf, shrink=0.5, aspect=5)
 #score_test  = model.evaluate(X_test,Y_test,verbose =0)
 ##print('Test score:',score_test[0])
 #print('Test accuracy:',score_test[1])
