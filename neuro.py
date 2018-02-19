@@ -21,6 +21,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix
 import os
 import random
+import pandas as pd
 from scipy import diag,arange
 
 
@@ -58,22 +59,29 @@ import pandas as pd
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 24  
-#N = 16
-N=2
-k = 100
+EXP_NUM = 26  
+N = 16
+#N=2
+
+k = 1000
 K = 1 #clusters
 
-dl = 35
-np.random.seed(0)
-#corresponds to N, K
-#means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
-#cov =[diag([0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35,0.1/35,0.05/35]), diag([0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35,0.2/35,0.05/35])]
+#dl = 0.3
+dl = 35 # 
 
-means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
-cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
+np.random.seed(10)
+#corresponds to N, K
+means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
+cov =[diag([0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl])]
+
+#means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
+#cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 700
+MAX_EPOCHS = 50
+
+
+
+
 
 #%%
 class DataParams:
@@ -121,7 +129,7 @@ class DataParams:
         return (np.array(X),np.array(y))
 
 #%%
-dataParams = DataParams()
+dataParams = DataParams(N=N,k=k,means = means, cov =cov)
 (X,y) = dataParams.create_model_data()
 
 
@@ -193,7 +201,7 @@ class NeuroModel:
     def fit_model(self):
         h1 = self.model.get_config()[0]['config']['units']
         h2 = self.model.get_config()[1]['config']['units']
-        model_name = "{}{}_{}".format(self.code,h1,h2)
+        model_name = "{}{}_{}_16".format(self.code,h1,h2)
         #не знаю, совпадает ли значение 
         checkpointer = ModelCheckpoint(filepath = "models/{}model.h5".format(model_name),monitor = "val_acc",verbose = 0,save_best_only = 1, save_weights_only = 1)
         #earlystopper = EarlyStopping(monitor ="loss", verbose = 0 , mode = "auto")
@@ -203,12 +211,15 @@ class NeuroModel:
         while  follow_flag:
             counter += 1
             fit_info = self.model.fit(X_train,Y_train,batch_size = self.batch_size,  \
-                                      epochs = self.max_epochs,verbose = 0,  \
+                                      epochs = self.max_epochs,verbose = 2,  \
                                       validation_data =(X_test,Y_test), callbacks = [checkpointer])
-            crit = np.sum(np.array(b[1:len(b)]) - np.array(b[0:len(b)-1]))
-            if crit < 0.2 :
-                follow_flag = False
-                print("Srabotal crit counter ={}, crit = {}".format(counter, crit))
+            
+            acc_fit = fit_info.history['acc']
+            crit = np.sum(np.array(acc_fit[1:len(acc_fit)]) - np.array(acc_fit[0:len(acc_fit)-1]))
+            print("Crit : {} ".format(crit))
+#            if crit < 0.2 :
+#                follow_flag = False
+#                print("Srabotal crit counter ={}, crit = {}".format(counter, crit))
             if  counter *self.max_epochs > MAX_EPOCHS:
                 follow_flag = False
         resTime = time.time() - a #in seconds
@@ -226,10 +237,10 @@ class NeuroModel:
 #%%
 df = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
 
-neuros_num = [ [i,j] for i in np.arange(4,21,2) for j in np.arange(5,20,2)]
+neuros_num = [ [i,j] for i in np.arange(4,21,2) for j in np.arange(4,20,2)]
 
 #for i in np.arange(len(neuros_num)): 
-for i in np.arange(4,5):
+for i in np.arange(26,27):
     try:
         del model
     except:
@@ -242,7 +253,7 @@ for i in np.arange(4,5):
     df = df.append(s, ignore_index= True)
     print("{} done".format(model_name))
 #%%
-df.to_csv("exp_ {}.csv".format(EXP_NUM),sep = ";")
+df.to_csv("exp_{}.csv".format(EXP_NUM),sep = ";")
 df["neuro1"] = df.model[:].apply(lambda x : int(x[3:].split("_")[0]))
 df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
 
@@ -260,7 +271,7 @@ df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
 
 #%%
 #fig.colorbar(surf, shrink=0.5, aspect=5)
-#score_test  = model.evaluate(X_test,Y_test,verbose =0)
+score_test  = model.model.evaluate(X_test,Y_test,verbose =0)
 ##print('Test score:',score_test[0])
 #print('Test accuracy:',score_test[1])
 #
@@ -268,7 +279,7 @@ df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
 ##print('Train score:',score_train[0])
 #print('Train accuracy:',score_train[1])
 # 
-
+# plt.scatter(XZ0[:,0],XZ0[:,1], color = '# ', alpha = 0.3)
 #%%
 #ROC - кривые - порог
 #res_train= model.predict_on_batch(X_train)
