@@ -240,7 +240,7 @@ for i in np.arange(len(neuros_num)):
 ##print('Train score:',score_train[0])
 #print('Train accuracy:',score_train[1])
 # 
-
+ plt.scatter(XZ0[:,0],XZ0[:,1], color = '# ', alpha = 0.3)
 #%%
 #ROC - кривые - порог
 #res_train= model.predict_on_batch(X_train)
