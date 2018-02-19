@@ -1,4 +1,7 @@
- 
+# commit exp 24 1 cluster 1 parent dccbb87 commit 096ceca94d1fdede72d0e5a7ddfb0d4395bf0518
+#                                                 096ceca94d1fdede72d0e5a7ddfb0d4395bf0518 
+
+
 #pip install keras
 #pip install tensorflow
 #pip install git+https://github.com/pybrain/pybrain.git@0.3.3
