@@ -55,7 +55,7 @@ import pandas as pd
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 23  
+EXP_NUM = 24  
 #N = 16
 N=2
 k = 100
@@ -70,7 +70,7 @@ np.random.seed(0)
 means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-
+MAX_EPOCHS = 700
 
 #%%
 class DataParams:
@@ -154,7 +154,7 @@ def visualisation(path,X,y, score_train, score_test, model):
     
     plt.text(1,1.1,s = "Train {:3f}".format(score_train))
     plt.text(1,1,s = "Test {:3f}".format(score_test))
-    plt.savefig("models/{}/fig.jpg".format(path))
+    plt.savefig("models/{}fig.jpg".format(path))
 
 
 #%%
@@ -178,7 +178,7 @@ class NeuroModel:
         self.optimizer = optimizer
         self.loss_func = loss_func
         self.code = code
-    def compile_model(self, N , hidneuro1 = 10, hidneuro2 = 7, max_epochs = 1500, batch_size = 1):
+    def compile_model(self, N , hidneuro1 = 10, hidneuro2 = 7, max_epochs = 50, batch_size = 1):
         np.random.seed(473)
         self.batch_size = batch_size
         self.max_epochs = max_epochs  
@@ -191,16 +191,23 @@ class NeuroModel:
         h1 = self.model.get_config()[0]['config']['units']
         h2 = self.model.get_config()[1]['config']['units']
         model_name = "{}{}_{}".format(self.code,h1,h2)
-        try :
-            os.makedirs("models/{}".format(model_name))
-        except:
-            pass    
-        checkpointer = ModelCheckpoint(filepath = "models/{}/model.h5".format(model_name),verbose = 0,save_best_only = 1, save_weights_only = 1)
+        #не знаю, совпадает ли значение 
+        checkpointer = ModelCheckpoint(filepath = "models/{}model.h5".format(model_name),monitor = "val_acc",verbose = 0,save_best_only = 1, save_weights_only = 1)
         #earlystopper = EarlyStopping(monitor ="loss", verbose = 0 , mode = "auto")
         a = time.time()    
-        # = True
-        #while  flag
-        fit_info = self.model.fit(X_train,Y_train,batch_size = self.batch_size,epochs = self.max_epochs,verbose = 0, validation_data =(X_test,Y_test), callbacks = [checkpointer])
+        follow_flag = True
+        counter = 0
+        while  follow_flag:
+            counter += 1
+            fit_info = self.model.fit(X_train,Y_train,batch_size = self.batch_size,  \
+                                      epochs = self.max_epochs,verbose = 0,  \
+                                      validation_data =(X_test,Y_test), callbacks = [checkpointer])
+            crit = np.sum(np.array(b[1:len(b)]) - np.array(b[0:len(b)-1]))
+            if crit < 0.2 :
+                follow_flag = False
+                print("Srabotal crit counter ={}, crit = {}".format(counter, crit))
+            if  counter *self.max_epochs > MAX_EPOCHS:
+                follow_flag = False
         resTime = time.time() - a #in seconds
         test_accuracy = max(fit_info.history['val_acc'])
         num = np.argmax(fit_info.history['val_acc'])
@@ -216,9 +223,10 @@ class NeuroModel:
 #%%
 df = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
 
-neuros_num = [ [i,j] for i in np.arange(4,27) for j in np.arange(4,27)]
+neuros_num = [ [i,j] for i in np.arange(4,21,2) for j in np.arange(5,20,2)]
 
-for i in np.arange(len(neuros_num)): 
+#for i in np.arange(len(neuros_num)): 
+for i in np.arange(4,5):
     try:
         del model
     except:
@@ -227,11 +235,28 @@ for i in np.arange(len(neuros_num)):
     model.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
     [model_name, t,acc_train, acc_test] = model.fit_model()
     s = pd.Series({"model":model_name, "time": t,"acc_train":acc_train, "acc_test":acc_test})
-    df.append(s, ignore_index= True)
+    pd.DataFrame(s).to_csv("models/{}.csv".format(model_name))
+    df = df.append(s, ignore_index= True)
+    print("{} done".format(model_name))
 #%%
-
+df.to_csv("exp_ {}.csv".format(EXP_NUM),sep = ";")
+df["neuro1"] = df.model[:].apply(lambda x : int(x[3:].split("_")[0]))
+df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
 
 #%%
+#from mpl_toolkits.mplot3d import Axes3D
+#from matplotlib import cm
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection='3d')
+#
+#n1 = np.arange(4,21,3)
+#n2 =  np.arange(5,20,3)
+#X3D, Y3D = np.meshgrid(n1, n2)
+#surf = ax.scatter(X3D,Y3D,df.acc_train.values, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+#surf = ax.plot_surface(X3D,Y3D,df.acc_train.values, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+
+#%%
+#fig.colorbar(surf, shrink=0.5, aspect=5)
 #score_test  = model.evaluate(X_test,Y_test,verbose =0)
 ##print('Test score:',score_test[0])
 #print('Test accuracy:',score_test[1])
