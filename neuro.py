@@ -16,13 +16,14 @@ import time
 import matplotlib.pyplot as plt
 from sklearn import svm
 from sklearn.cross_validation import train_test_split,cross_val_score,StratifiedShuffleSplit
-from sklearn.preprocessing import StandardScaler
+
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix
 import os
 import random
 import pandas as pd
 from scipy import diag,arange
+from sklearn.preprocessing import MinMaxScaler
 
 
 from sklearn.datasets import make_classification
@@ -36,6 +37,7 @@ from pybrain.utilities           import percentError
 from keras import backend
 from keras  import metrics
 import pandas as pd 
+import ps_data
 #os.chdir("c:\\Luna\\Work\\python\\PS")
 #%%
 #def mean_pred(y_true,y_pred):
@@ -59,23 +61,26 @@ import pandas as pd
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 26  
-N = 16
+EXP_NUM = 27
+X_PS,Y_PS, CLs = ps_data.open_ps_2007()  
+N = X_PS.columns.size
+
+#%%
 #N=2
 
-k = 1000
-K = 1 #clusters
-
+#k = 500
+#K = 2 #clusters
+#
 #dl = 0.3
-dl = 35 # 
-
-np.random.seed(10)
-#corresponds to N, K
-means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
-cov =[diag([0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl])]
-
-#means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
-#cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
+##dl = 35 # 
+#
+#np.random.seed(10)
+##corresponds to N, K
+#means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
+#cov =[diag([0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl])]
+#
+##means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
+##cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
 MAX_EPOCHS = 50
 
@@ -123,16 +128,32 @@ class DataParams:
                        
                 X.append(input)
                 y.append(1)
-                X.append(np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int))))
+                X.append( np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int))))
                 y.append(0)       
         
         return (np.array(X),np.array(y))
 
 #%%
-dataParams = DataParams(N=N,k=k,means = means, cov =cov)
-(X,y) = dataParams.create_model_data()
+#dataParams = DataParams(N=N,k=k,means = means, cov =cov)
+#(X,y) = dataParams.create_model_data()
+X_1 = X_PS.values
+kk = X_1.shape[0]
+
+coder = MinMaxScaler()
+coder.fit(X_1)
+X_1 = coder.transform(X_1)
 
 
+X = []
+y = []
+for i in np.arange(kk):
+    X.append(X_1[i])
+    y.append(1)
+    X.append(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))))
+    y.append(0)
+
+X = np.array(X)
+y = np.array(y)
 #%%
 def visualisation(path,X,y, score_train, score_test, model):
  
@@ -177,6 +198,8 @@ X_train,X_test,y_train,y_test = train_test_split(X,y, train_size =TRAIN_SIZE, ra
 
 Y_train = np_utils.to_categorical(y_train,nb_classes)
 Y_test = np_utils.to_categorical(y_test,nb_classes)
+
+
 #Где гарантия, что бинарные представления классов будут одинаковы для разных запуском функции 
 #to_categorical для одной задачи.
 #%%
@@ -201,7 +224,7 @@ class NeuroModel:
     def fit_model(self):
         h1 = self.model.get_config()[0]['config']['units']
         h2 = self.model.get_config()[1]['config']['units']
-        model_name = "{}{}_{}_16".format(self.code,h1,h2)
+        model_name = "{}{}_{}_17".format(self.code,h1,h2)
         #не знаю, совпадает ли значение 
         checkpointer = ModelCheckpoint(filepath = "models/{}model.h5".format(model_name),monitor = "val_acc",verbose = 0,save_best_only = 1, save_weights_only = 1)
         #earlystopper = EarlyStopping(monitor ="loss", verbose = 0 , mode = "auto")
@@ -210,10 +233,11 @@ class NeuroModel:
         counter = 0
         while  follow_flag:
             counter += 1
+            print("!!")
             fit_info = self.model.fit(X_train,Y_train,batch_size = self.batch_size,  \
                                       epochs = self.max_epochs,verbose = 2,  \
                                       validation_data =(X_test,Y_test), callbacks = [checkpointer])
-            
+            print("!!!")
             acc_fit = fit_info.history['acc']
             crit = np.sum(np.array(acc_fit[1:len(acc_fit)]) - np.array(acc_fit[0:len(acc_fit)-1]))
             print("Crit : {} ".format(crit))
@@ -235,6 +259,7 @@ class NeuroModel:
 
 
 #%%
+#N = dataParams.N
 df = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
 
 neuros_num = [ [i,j] for i in np.arange(4,21,2) for j in np.arange(4,20,2)]
@@ -246,7 +271,7 @@ for i in np.arange(26,27):
     except:
         pass
     model = NeuroModel()
-    model.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
+    model.compile_model(N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
     [model_name, t,acc_train, acc_test] = model.fit_model()
     s = pd.Series({"model":model_name, "time": t,"acc_train":acc_train, "acc_test":acc_test})
     pd.DataFrame(s).to_csv("models/{}.csv".format(model_name))
