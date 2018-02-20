@@ -60,11 +60,11 @@ EXP_NUM = 26
 N = 16
 #N=2
 
-k = 1000
-K = 1 #clusters
+k = 500
+K = 2 #clusters
 
 #dl = 0.3
-dl = 35 # 
+dl = 1 # 
 
 np.random.seed(10)
 #corresponds to N, K
