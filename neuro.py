@@ -64,7 +64,16 @@ import ps_data
 EXP_NUM = 27
 X_PS,Y_PS, CLs = ps_data.open_ps_2007()  
 N = X_PS.columns.size
+y_num_positive = [1,2,3,4,5,7,8,10]
+y_num_negative = [6,9]
+X_1 = []
+X_test_class = []
 
+for j in np.arange(len(X_PS)):
+    if Y_PS.iloc[j].values in y_num_positive:
+        X_1.append(X_PS.iloc[j].values)
+    if Y_PS.iloc[j].values in y_num_negative:
+        X_test_class.append(X_PS.iloc[j].values)
 #%%
 #N=2
 
@@ -82,7 +91,7 @@ N = X_PS.columns.size
 ##means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 ##cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 50
+MAX_EPOCHS = 150
 
 
 
@@ -136,21 +145,22 @@ class DataParams:
 #%%
 #dataParams = DataParams(N=N,k=k,means = means, cov =cov)
 #(X,y) = dataParams.create_model_data()
-X_1 = X_PS.values
-kk = X_1.shape[0]
+#X_1 = X_PS.values
+kk = len(X_1)
 
 coder = MinMaxScaler()
 coder.fit(X_1)
 X_1 = coder.transform(X_1)
-
+X_test_class =coder.transform(X_test_class)
 
 X = []
 y = []
 for i in np.arange(kk):
     X.append(X_1[i])
     y.append(1)
-    X.append(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))))
-    y.append(0)
+    for j in np.arange(3):    
+        X.append(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))))
+        y.append(0)
 
 X = np.array(X)
 y = np.array(y)
@@ -265,13 +275,13 @@ df = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
 neuros_num = [ [i,j] for i in np.arange(4,21,2) for j in np.arange(4,20,2)]
 
 #for i in np.arange(len(neuros_num)): 
-for i in np.arange(26,27):
+for i in np.arange(63,64):
     try:
         del model
     except:
         pass
     model = NeuroModel()
-    model.compile_model(N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
+    model.compile_model(N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1], max_epochs = MAX_EPOCHS, batch_size= 8)
     [model_name, t,acc_train, acc_test] = model.fit_model()
     s = pd.Series({"model":model_name, "time": t,"acc_train":acc_train, "acc_test":acc_test})
     pd.DataFrame(s).to_csv("models/{}.csv".format(model_name))
@@ -297,6 +307,8 @@ df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
 #%%
 #fig.colorbar(surf, shrink=0.5, aspect=5)
 score_test  = model.model.evaluate(X_test,Y_test,verbose =0)
+y_test_class = np_utils.to_categorical(np.zeros(len(X_test_class)),nb_classes)
+score_test_otlogennie = model.model.evaluate(np.array(X_test_class),y_test_class) 
 ##print('Test score:',score_test[0])
 #print('Test accuracy:',score_test[1])
 #
