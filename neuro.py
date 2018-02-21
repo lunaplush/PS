@@ -1,4 +1,7 @@
- 
+# commit exp 24 1 cluster 1 parent dccbb87 commit 096ceca94d1fdede72d0e5a7ddfb0d4395bf0518
+#                                                 096ceca94d1fdede72d0e5a7ddfb0d4395bf0518 
+
+
 #pip install keras
 #pip install tensorflow
 #pip install git+https://github.com/pybrain/pybrain.git@0.3.3
@@ -56,23 +59,24 @@ import pandas as pd
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 26  
-N = 16
+EXP_NUM = 30  
+N = 2
 #N=2
 
 k = 500
-K = 2 #clusters
+K = 1 #clusters
+
 
 #dl = 0.3
 dl = 1 # 
 
 np.random.seed(10)
 #corresponds to N, K
-means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
-cov =[diag([0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl])]
+#means =[(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.3,0.1,0.7,0.1,0.1,0.4,0.2,0.1,0.7), (0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5,0.4,0.5)]
+#cov =[diag([0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl,0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl,0.2/dl,0.05/dl])]
 
-#means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
-#cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
+means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
+cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
 MAX_EPOCHS = 50
 
@@ -133,7 +137,7 @@ dataParams = DataParams(N=N,k=k,means = means, cov =cov)
 #%%
 def visualisation(path,X,y, score_train, score_test, model):
  
-
+    #fig = plt.figure(1, figsize = (2,2))
     X1 = X[(y == 1).flatten()]
     X0 = X[(y == 0).flatten()]
     
@@ -153,6 +157,7 @@ def visualisation(path,X,y, score_train, score_test, model):
     
     XZ0 = data[(res_Z_bin == 0)]
     XZ1 = data[(res_Z_bin == 1 )]
+    plt.subplot(111)
     plt.scatter(XZ0[:,0],XZ0[:,1], color = '#881000', alpha = 0.3)
     plt.scatter(XZ1[:,0],XZ1[:,1], color = "#000083", alpha = 0.3)
     
@@ -180,7 +185,7 @@ Y_test = np_utils.to_categorical(y_test,nb_classes)
 class NeuroModel:
     nb_classes = 2
     def __init__(self, activation_layer1= 'relu', activation_layer2='sigmoid',  \
-                       optimizer =  "adam", loss_func = 'categorical_crossentropy', code = "ASR"):
+                       optimizer =  "adam", loss_func = 'categorical_crossentropy', code = "ASR_N2_Cl1_"):
         self.activation_layer1 = activation_layer1 
         self.activation_layer2 = activation_layer2
         self.optimizer = optimizer
@@ -251,8 +256,60 @@ for i in np.arange(26,27):
     print("{} done".format(model_name))
 #%%
 df.to_csv("exp_{}.csv".format(EXP_NUM),sep = ";")
-df["neuro1"] = df.model[:].apply(lambda x : int(x[3:].split("_")[0]))
-df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
+#df["neuro1"] = df.model[:].apply(lambda x : int(x[3:].split("_")[0]))
+#df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
+
+#%%
+
+
+#VISUALIZATION
+
+
+ 
+model_name1= model_name + "TEZ"
+fig = plt.figure(1, figsize = (12,12))
+X1 = X_train[(y_train == 1).flatten()]
+X0 = X_train[(y_train == 0).flatten()]
+
+
+xx,yy = np.meshgrid(np.arange(0,1,0.01), np.arange(0,1,0.01))
+data = np.c_[xx.ravel(),yy.ravel()] 
+
+Z = model.model.predict_on_batch(data)
+
+res_Z_bin = Z.argmax(axis = 1)
+
+level = 0.7
+for i in np.arange(len(Z)): 
+    #print(Z[i])
+    if max(Z[i]) < level:
+        res_Z_bin[i] =  -1
+
+XZ0 = data[(res_Z_bin == 0)]
+XZ1 = data[(res_Z_bin == 1 )]
+plt.subplot(121)
+#plt.xlim(0,1)
+plt.scatter(XZ0[:,0],XZ0[:,1], color = '#888888', alpha = 0.3)
+plt.scatter(XZ1[:,0],XZ1[:,1], color = "#BBBBBB", alpha = 0.3)
+
+
+plt.scatter(X1[:,0],X1[:,1], color = "k", marker = "^")
+plt.scatter(X0[:,0],X0[:,1], color = "#333333", marker ="8")
+
+plt.subplot(122)
+#plt.xlim(0,1)
+plt.scatter(XZ0[:,0],XZ0[:,1], color = '#888888', alpha = 0.3)
+plt.scatter(XZ1[:,0],XZ1[:,1], color = "#BBBBBB", alpha = 0.3)
+
+
+plt.scatter(X1[:,0],X1[:,1], color = "k", marker = "^")
+plt.scatter(X0[:,0],X0[:,1], color = "#333333", marker ="8")
+
+
+
+#plt.text(1,1.1,s = "Train {:3f}".format(score_train))
+#plt.text(1,1,s = "Test {:3f}".format(score_test))
+plt.savefig("models/{}fig.jpg".format(model_name1))
 
 #%%
 #from mpl_toolkits.mplot3d import Axes3D
