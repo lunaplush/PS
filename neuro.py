@@ -61,11 +61,12 @@ import ps_data
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 27
+EXP_NUM = 32
 X_PS,Y_PS, CLs = ps_data.open_ps_2007()  
+X_PS =  X_PS.iloc[:,[0,1,2,3,4,5,6,7,8,9,11,12,13,14]]
 N = X_PS.columns.size
-y_num_positive = [1,2,3,4,5,7,8,10]
-y_num_negative = [6,9]
+y_num_positive = [1,3,4,7,8,10,6,9]
+y_num_negative = [5,2]
 X_1 = []
 X_test_class = []
 
@@ -91,7 +92,7 @@ for j in np.arange(len(X_PS)):
 ##means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 ##cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 150
+MAX_EPOCHS = 50
 
 
 
@@ -155,10 +156,11 @@ X_test_class =coder.transform(X_test_class)
 
 X = []
 y = []
+class_balance = 2
 for i in np.arange(kk):
     X.append(X_1[i])
     y.append(1)
-    for j in np.arange(3):    
+    for j in np.arange(class_balance):    
         X.append(np.random.uniform(low = tuple(np.zeros(N,int)),high = tuple(np.ones(N,int))))
         y.append(0)
 
@@ -216,7 +218,7 @@ Y_test = np_utils.to_categorical(y_test,nb_classes)
 class NeuroModel:
     nb_classes = 2
     def __init__(self, activation_layer1= 'relu', activation_layer2='sigmoid',  \
-                       optimizer =  "adam", loss_func = 'categorical_crossentropy', code = "ASR"):
+                       optimizer =  "adam", loss_func = 'categorical_crossentropy', code = "ASR_PS_chmethod"):
         self.activation_layer1 = activation_layer1 
         self.activation_layer2 = activation_layer2
         self.optimizer = optimizer
@@ -224,6 +226,7 @@ class NeuroModel:
         self.code = code
     def compile_model(self, N , hidneuro1 = 10, hidneuro2 = 7, max_epochs = 50, batch_size = 1):
         np.random.seed(473)
+        self.N = N
         self.batch_size = batch_size
         self.max_epochs = max_epochs  
         self.model = Sequential()
@@ -234,27 +237,48 @@ class NeuroModel:
     def fit_model(self):
         h1 = self.model.get_config()[0]['config']['units']
         h2 = self.model.get_config()[1]['config']['units']
-        model_name = "{}{}_{}_17".format(self.code,h1,h2)
+        model_name = "{}{}_{}_N{}".format(self.code,h1,h2, self.N)
         #не знаю, совпадает ли значение 
         checkpointer = ModelCheckpoint(filepath = "models/{}model.h5".format(model_name),monitor = "val_acc",verbose = 0,save_best_only = 1, save_weights_only = 1)
         #earlystopper = EarlyStopping(monitor ="loss", verbose = 0 , mode = "auto")
         a = time.time()    
         follow_flag = True
         counter = 0
+        X_tr = X_train
         while  follow_flag:
             counter += 1
-            print("!!")
-            fit_info = self.model.fit(X_train,Y_train,batch_size = self.batch_size,  \
-                                      epochs = self.max_epochs,verbose = 2,  \
-                                      validation_data =(X_test,Y_test), callbacks = [checkpointer])
-            print("!!!")
-            acc_fit = fit_info.history['acc']
-            crit = np.sum(np.array(acc_fit[1:len(acc_fit)]) - np.array(acc_fit[0:len(acc_fit)-1]))
-            print("Crit : {} ".format(crit))
+            print("!!Fit begin")
+            
+            #fit_info = self.model.fit(X_train,Y_train,batch_size = self.batch_size,  \
+            #                          epochs = self.max_epochs,verbose = 2,  \
+            #                          validation_data =(X_test,Y_test), callbacks = [checkpointer])
+            for j in np.arange(self.max_epochs):
+                print("Epocha ", j)
+                fit_info = self.model.fit(X_tr,Y_train,batch_size = self.batch_size, \
+                               epochs = 1, verbose = 2, \
+                               validation_data =(X_test,Y_test), callbacks = [checkpointer] \
+                               )
+                ch = 0
+                for l in np.arange(X_tr.shape[0]):
+                    if Y_train[l][0] == 1:
+                        res = self.model.predict(X_tr[l].reshape(1,self.N))
+                        if res[0][0] < 0.45 :
+                            pass
+                        else:
+                            X_tr[l] = np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int)))
+                            ch +=1
+                print("change negatives:",ch)                
+            print("!!!Fit End")
+
+#Пока отложим критерий            
+            #acc_fit = fit_info.history['acc']
+            #crit = np.sum(np.array(acc_fit[1:len(acc_fit)]) - np.array(acc_fit[0:len(acc_fit)-1]))
+            #print("Crit : {} ".format(crit))
 #            if crit < 0.2 :
 #                follow_flag = False
 #                print("Srabotal crit counter ={}, crit = {}".format(counter, crit))
-            if  counter *self.max_epochs > MAX_EPOCHS:
+
+            if  counter *self.max_epochs >= MAX_EPOCHS:
                 follow_flag = False
         resTime = time.time() - a #in seconds
         test_accuracy = max(fit_info.history['val_acc'])
@@ -281,7 +305,7 @@ for i in np.arange(63,64):
     except:
         pass
     model = NeuroModel()
-    model.compile_model(N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1], max_epochs = MAX_EPOCHS, batch_size= 8)
+    model.compile_model(N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1], batch_size= 1)
     [model_name, t,acc_train, acc_test] = model.fit_model()
     s = pd.Series({"model":model_name, "time": t,"acc_train":acc_train, "acc_test":acc_test})
     pd.DataFrame(s).to_csv("models/{}.csv".format(model_name))
@@ -289,8 +313,8 @@ for i in np.arange(63,64):
     print("{} done".format(model_name))
 #%%
 df.to_csv("exp_{}.csv".format(EXP_NUM),sep = ";")
-df["neuro1"] = df.model[:].apply(lambda x : int(x[3:].split("_")[0]))
-df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
+#df["neuro1"] = df.model[:].apply(lambda x : int(x[3:].split("_")[0]))
+#df["neuro2"] = df.model[:].apply(lambda x : int(x[3:].split("_")[1]))
 
 #%%
 #from mpl_toolkits.mplot3d import Axes3D
