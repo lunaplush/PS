@@ -64,11 +64,11 @@ N = 2
 #N=2
 
 k = 500
-K = 1 #clusters
+K = 35 #clusters
 
 
 #dl = 0.3
-dl = 1 # 
+dl = 35 # 
 
 np.random.seed(10)
 #corresponds to N, K
@@ -242,7 +242,7 @@ df = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
 neuros_num = [ [i,j] for i in np.arange(4,21,2) for j in np.arange(4,20,2)]
 
 #for i in np.arange(len(neuros_num)): 
-for i in np.arange(26,27):
+for i in np.arange(29,30):
     try:
         del model
     except:
@@ -264,22 +264,35 @@ df.to_csv("exp_{}.csv".format(EXP_NUM),sep = ";")
 
 #VISUALIZATION
 
+#Иллюстрация для тезисов
+n1 = 10
+n2 = 14
+model_name1= "ASR10_14"
+ml2 = NeuroModel()
+ml2.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
+ml2.model.load_weights("models\\{}model.h5".format(model_name1))
 
- 
-model_name1= model_name + "TEZ"
-fig = plt.figure(1, figsize = (12,12))
+n1 = 7
+n2 = 11
+model_name2= "ASR7_11"
+ml1 = NeuroModel()
+ml1.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
+ml1.model.load_weights("models\\{}model.h5".format(model_name2))
+
+
+
+fig = plt.figure(1, figsize = (10,5), dpi = 300)
 X1 = X_train[(y_train == 1).flatten()]
 X0 = X_train[(y_train == 0).flatten()]
 
 
-xx,yy = np.meshgrid(np.arange(0,1,0.01), np.arange(0,1,0.01))
+xx,yy = np.meshgrid(np.arange(0,1,0.005), np.arange(0,1,0.005))
 data = np.c_[xx.ravel(),yy.ravel()] 
 
-Z = model.model.predict_on_batch(data)
-
+Z = ml1.model.predict_on_batch(data)
 res_Z_bin = Z.argmax(axis = 1)
 
-level = 0.7
+level =0.0 
 for i in np.arange(len(Z)): 
     #print(Z[i])
     if max(Z[i]) < level:
@@ -287,29 +300,46 @@ for i in np.arange(len(Z)):
 
 XZ0 = data[(res_Z_bin == 0)]
 XZ1 = data[(res_Z_bin == 1 )]
-plt.subplot(121)
-#plt.xlim(0,1)
+ax1 = plt.subplot(121)
+plt.xlim(0.0,1.0)
+plt.ylim(0.0,1.0)
+plt.xlabel("$x_1$")
+plt.ylabel("$x_2$")
 plt.scatter(XZ0[:,0],XZ0[:,1], color = '#888888', alpha = 0.3)
 plt.scatter(XZ1[:,0],XZ1[:,1], color = "#BBBBBB", alpha = 0.3)
 
 
-plt.scatter(X1[:,0],X1[:,1], color = "k", marker = "^")
-plt.scatter(X0[:,0],X0[:,1], color = "#333333", marker ="8")
+plt.scatter(X1[:,0],X1[:,1],36,color = "k", marker = "+")
+plt.scatter(X0[:,0],X0[:,1],36, color = "k", marker ="_")
 
-plt.subplot(122)
-#plt.xlim(0,1)
+ax2 = plt.subplot(122, sharey = ax1)
+plt.xlim(0.0,1.0)
+plt.ylim(0.0,1.0)
+plt.xlabel("$x_1$")
+plt.ylabel("$x_2$")
+
+Z = ml2.model.predict_on_batch(data)
+res_Z_bin = Z.argmax(axis = 1)
+
+for i in np.arange(len(Z)): 
+    #print(Z[i])
+    if max(Z[i]) < level:
+        res_Z_bin[i] =  -1
+
+XZ0 = data[(res_Z_bin == 0)]
+XZ1 = data[(res_Z_bin == 1 )]
 plt.scatter(XZ0[:,0],XZ0[:,1], color = '#888888', alpha = 0.3)
 plt.scatter(XZ1[:,0],XZ1[:,1], color = "#BBBBBB", alpha = 0.3)
 
 
-plt.scatter(X1[:,0],X1[:,1], color = "k", marker = "^")
-plt.scatter(X0[:,0],X0[:,1], color = "#333333", marker ="8")
+plt.scatter(X1[:,0],X1[:,1],36, color = "k", marker = "+")
+plt.scatter(X0[:,0],X0[:,1],36, color = "k", marker ="_")
 
 
 
 #plt.text(1,1.1,s = "Train {:3f}".format(score_train))
 #plt.text(1,1,s = "Test {:3f}".format(score_test))
-plt.savefig("models/{}fig.jpg".format(model_name1))
+plt.savefig("models/illustrate1_mark3.jpg")
 
 #%%
 #from mpl_toolkits.mplot3d import Axes3D
