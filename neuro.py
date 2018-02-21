@@ -341,6 +341,8 @@ plt.scatter(X0[:,0],X0[:,1],36, color = "k", marker ="_")
 #plt.text(1,1,s = "Test {:3f}".format(score_test))
 plt.savefig("models/illustrate1_mark3.jpg")
 
+score_test_1  = ml1.model.evaluate(X_test,Y_test,verbose =0)
+score_test_2  = ml2.model.evaluate(X_test,Y_test,verbose =0)
 #%%
 #from mpl_toolkits.mplot3d import Axes3D
 #from matplotlib import cm
