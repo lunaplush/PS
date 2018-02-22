@@ -61,7 +61,7 @@ import ps_data
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 32
+EXP_NUM = 33
 X_PS,Y_PS, CLs = ps_data.open_ps_2007()  
 X_PS =  X_PS.iloc[:,[0,1,2,3,4,5,6,7,8,9,11,12,13,14]]
 N = X_PS.columns.size
@@ -92,7 +92,7 @@ for j in np.arange(len(X_PS)):
 ##means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 ##cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 50
+MAX_EPOCHS = 150
 
 
 
@@ -156,7 +156,7 @@ X_test_class =coder.transform(X_test_class)
 
 X = []
 y = []
-class_balance = 2
+class_balance = 4
 for i in np.arange(kk):
     X.append(X_1[i])
     y.append(1)
@@ -255,7 +255,7 @@ class NeuroModel:
             for j in np.arange(self.max_epochs):
                 print("Epocha ", j)
                 fit_info = self.model.fit(X_tr,Y_train,batch_size = self.batch_size, \
-                               epochs = 1, verbose = 2, \
+                               epochs = 3, verbose = 0, \
                                validation_data =(X_test,Y_test), callbacks = [checkpointer] \
                                )
                 ch = 0
