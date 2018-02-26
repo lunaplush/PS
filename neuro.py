@@ -256,7 +256,7 @@ class NeuroModel:
 #            if crit < 0.2 :
 #                follow_flag = False
 #                print("Srabotal crit counter ={}, crit = {}".format(counter, crit))
-            if  counter *self.max_epochs > MAX_EPOCHS:
+            if  counter *self.max_epochs >= MAX_EPOCHS:
                 follow_flag = False
         resTime = time.time() - a #in seconds
         test_accuracy = max(fit_info.history['val_acc'])
@@ -295,7 +295,7 @@ for i in np.arange(29,30):
     except:
         pass
     X_train = X_train2
-    y_train = y_train2
+    Y_train = Y_train2
     model2 = NeuroModel(code = "ASR_two_")
     model2.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
     [model_name2, t2,acc_train2, acc_test2] = model2.fit_model()
