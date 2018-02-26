@@ -78,7 +78,7 @@ np.random.seed(10)
 means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 50
+MAX_EPOCHS = 250
 
 
 
@@ -234,10 +234,10 @@ class NeuroModel:
         self.model.add(Dense(units = hidneuro2,activation = self.activation_layer2))
         self.model.add(Dense(units = self.nb_classes,activation = "softmax"))
         self.model.compile(optimizer = self.optimizer,loss= self.loss_func, metrics=['accuracy'])                  
-    def fit_model(self):
+    def fit_model(self, f_X_train,f_Y_train,f_X_test,f_Y_test):
         h1 = self.model.get_config()[0]['config']['units']
         h2 = self.model.get_config()[1]['config']['units']
-        model_name = "{}{}_{}_N{}_cl{}".format(self.code,h1,h2,N,k )
+        model_name = "{}{}_{}_N{}_cl{}".format(self.code,h1,h2,N,K )
         #не знаю, совпадает ли значение 
         checkpointer = ModelCheckpoint(filepath = "models/{}model.h5".format(model_name),monitor = "val_acc",verbose = 0,save_best_only = 1, save_weights_only = 1)
         #earlystopper = EarlyStopping(monitor ="loss", verbose = 0 , mode = "auto")
@@ -246,9 +246,9 @@ class NeuroModel:
         counter = 0
         while  follow_flag:
             counter += 1
-            fit_info = self.model.fit(X_train,Y_train,batch_size = self.batch_size,  \
+            fit_info = self.model.fit(f_X_train,f_Y_train,batch_size = self.batch_size,  \
                                       epochs = self.max_epochs,verbose = 2,  \
-                                      validation_data =(X_test,Y_test), callbacks = [checkpointer])
+                                      validation_data =(f_X_test,f_Y_test), callbacks = [checkpointer])
             
             acc_fit = fit_info.history['acc']
             crit = np.sum(np.array(acc_fit[1:len(acc_fit)]) - np.array(acc_fit[0:len(acc_fit)-1]))
@@ -263,7 +263,7 @@ class NeuroModel:
         num = np.argmax(fit_info.history['val_acc'])
         train_accuracy = fit_info.history['acc'][num]
         if N == 2 :
-            visualisation(model_name,X_train, y_train,train_accuracy, test_accuracy, self.model)
+            visualisation(model_name,f_X_train, f_y_train,train_accuracy, test_accuracy, self.model)
         return [model_name, resTime, train_accuracy, test_accuracy]
     
 
@@ -284,21 +284,22 @@ for i in np.arange(29,30):
         pass
     model = NeuroModel()
     model.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
-    [model_name, t,acc_train, acc_test] = model.fit_model()
+    [model_name, t,acc_train, acc_test] = model.fit_model(X_train,Y_train,X_test,Y_test)
     s = pd.Series({"model":model_name, "time": t,"acc_train":acc_train, "acc_test":acc_test})
     pd.DataFrame(s).to_csv("models/{}.csv".format(model_name))
     df = df.append(s, ignore_index= True)
     print("{} done".format(model_name))
     
+    MAX_EPOCHS = 50
+
     try:
         del model2
     except:
         pass
-    X_train = X_train2
-    Y_train = Y_train2
+   
     model2 = NeuroModel(code = "ASR_two_")
     model2.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
-    [model_name2, t2,acc_train2, acc_test2] = model2.fit_model()
+    [model_name2, t2,acc_train2, acc_test2] = model2.fit_model(X_train2,Y_train2,X_test2,Y_test2)
     s2 = pd.Series({"model":model_name2, "time": t2,"acc_train":acc_train2, "acc_test":acc_test2})
     pd.DataFrame(s).to_csv("models/{}.csv".format(model_name2))
     df2 = df2.append(s, ignore_index= True)
@@ -320,22 +321,24 @@ n1 = 10
 n2 = 14
 #model_name1= "ASR10_14"
 
-ml2 = NeuroModel()
-ml2.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
-ml2.model.load_weights("models\\{}model.h5".format(model_name1))
+#ml2 = NeuroModel()
+#ml2.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
+#ml2.model.load_weights("models\\{}model.h5".format(model_name))
 
 n1 = 7
 n2 = 11
 #model_name2= "ASR7_11"
-ml1 = NeuroModel()
-ml1.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
-ml1.model.load_weights("models\\{}model.h5".format(model_name2))
-
+#ml1 = NeuroModel()
+#ml1.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
+#ml1.model.load_weights("models\\{}model.h5".format(model_name2))
+ml1 = model
+ml2 = model2
 
 
 fig = plt.figure(1, figsize = (10,5), dpi = 300)
 X1 = X_train[(y_train == 1).flatten()]
 X0 = X_train[(y_train == 0).flatten()]
+
 
 
 xx,yy = np.meshgrid(np.arange(0,1,0.005), np.arange(0,1,0.005))
@@ -377,6 +380,9 @@ for i in np.arange(len(Z)):
     #print(Z[i])
     if max(Z[i]) < level:
         res_Z_bin[i] =  -1
+X1_2 = X_train2[(y_train2 == 1).flatten()]
+X0_2 = X_train2[(y_train2 == 0).flatten()]
+
 
 XZ0 = data[(res_Z_bin == 0)]
 XZ1 = data[(res_Z_bin == 1 )]
@@ -384,14 +390,14 @@ plt.scatter(XZ0[:,0],XZ0[:,1], color = '#888888', alpha = 0.3)
 plt.scatter(XZ1[:,0],XZ1[:,1], color = "#BBBBBB", alpha = 0.3)
 
 
-plt.scatter(X1[:,0],X1[:,1],36, color = "k", marker = "+")
-plt.scatter(X0[:,0],X0[:,1],36, color = "k", marker ="_")
+plt.scatter(X1_2[:,0],X1_2[:,1],36, color = "k", marker = "+")
+plt.scatter(X0_2[:,0],X0_2[:,1],36, color = "k", marker ="x")
 
 
 
 #plt.text(1,1.1,s = "Train {:3f}".format(score_train))
 #plt.text(1,1,s = "Test {:3f}".format(score_test))
-plt.savefig("models/illustrate1_mark5.jpg")
+plt.savefig("models/illustrate1_mark6.jpg")
 
 score_test_1  = ml1.model.evaluate(X_test,Y_test,verbose =0)
 score_test_2  = ml2.model.evaluate(X_test,Y_test,verbose =0)
