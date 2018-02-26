@@ -92,7 +92,7 @@ for j in np.arange(len(X_PS)):
 ##means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 ##cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 150
+MAX_EPOCHS = 5000
 
 
 
@@ -211,7 +211,7 @@ X_train,X_test,y_train,y_test = train_test_split(X,y, train_size =TRAIN_SIZE, ra
 Y_train = np_utils.to_categorical(y_train,nb_classes)
 Y_test = np_utils.to_categorical(y_test,nb_classes)
 
-
+score_test_otlogennie = []
 #Где гарантия, что бинарные представления классов будут одинаковы для разных запуском функции 
 #to_categorical для одной задачи.
 #%%
@@ -267,7 +267,10 @@ class NeuroModel:
                         else:
                             X_tr[l] = np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int)))
                             ch +=1
-                print("change negatives:",ch)                
+                print("change negatives:",ch)  
+                sc = self.model.evaluate(np.array(X_test_class),y_test_class)
+                score_test_otlogennie.append(sc[1])
+                print("score na otlogennych ", sc)
             print("!!!Fit End")
 
 #Пока отложим критерий            
