@@ -78,7 +78,7 @@ np.random.seed(10)
 means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 500
+MAX_EPOCHS = 50
 
 
 
@@ -128,10 +128,36 @@ class DataParams:
                 y.append(0)       
         
         return (np.array(X),np.array(y))
+        
+    def create_model_data_two(self):
+        np.random.seed(367)
+        X = []
+        y = []
+        for i in range(self.k):
+            for cluster in range(self.K):
+               
+                input = np.random.multivariate_normal(self.means[cluster],self.cov[cluster])
+                
+                for j in range(self.N):
+                   if input[j] > 1:
+                       input[j] = self.means[cluster][j]
+                       
+                   if input[j] < 0:
+                       input[j] = self.means[cluster][j]
+                       
+                X.append(input)
+                y.append(cluster)
+                #X.append(np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int))))
+                #y.append(0)       
+        
+        return (np.array(X),np.array(y))
+        
 
 #%%
-dataParams = DataParams(N=N,k=k,means = means, cov =cov)
+dataParams = DataParams(N=N,k=k,K=K,means = means, cov =cov)
 (X,y) = dataParams.create_model_data()
+(X2,y2) = dataParams.create_model_data_two()
+
 
 
 #%%
@@ -179,6 +205,14 @@ X_train,X_test,y_train,y_test = train_test_split(X,y, train_size =TRAIN_SIZE, ra
 
 Y_train = np_utils.to_categorical(y_train,nb_classes)
 Y_test = np_utils.to_categorical(y_test,nb_classes)
+
+
+X_train2,X_test2,y_train2,y_test2 = train_test_split(X2,y2, train_size =TRAIN_SIZE, random_state = 10)
+
+Y_train2 = np_utils.to_categorical(y_train2,nb_classes)
+Y_test2 = np_utils.to_categorical(y_test2,nb_classes)
+
+
 #Где гарантия, что бинарные представления классов будут одинаковы для разных запуском функции 
 #to_categorical для одной задачи.
 #%%
@@ -238,6 +272,7 @@ class NeuroModel:
 
 #%%
 df = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
+df2 = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
 
 neuros_num = [ [i,j] for i in np.arange(4,21,2) for j in np.arange(4,20,2)]
 
@@ -254,6 +289,22 @@ for i in np.arange(29,30):
     pd.DataFrame(s).to_csv("models/{}.csv".format(model_name))
     df = df.append(s, ignore_index= True)
     print("{} done".format(model_name))
+    
+    try:
+        del model2
+    except:
+        pass
+    X_train = X_train2
+    y_train = y_train2
+    model2 = NeuroModel(code = "ASR_two_")
+    model2.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
+    [model_name2, t2,acc_train2, acc_test2] = model2.fit_model()
+    s2 = pd.Series({"model":model_name2, "time": t2,"acc_train":acc_train2, "acc_test":acc_test2})
+    pd.DataFrame(s).to_csv("models/{}.csv".format(model_name2))
+    df2 = df2.append(s, ignore_index= True)
+    print("{} done".format(model_name))
+    
+    
 #%%
 df.to_csv("exp_{}.csv".format(EXP_NUM),sep = ";")
 #df["neuro1"] = df.model[:].apply(lambda x : int(x[3:].split("_")[0]))
@@ -267,14 +318,15 @@ df.to_csv("exp_{}.csv".format(EXP_NUM),sep = ";")
 ##Иллюстрация для тезисов
 n1 = 10
 n2 = 14
-model_name1= "ASR10_14"
+#model_name1= "ASR10_14"
+
 ml2 = NeuroModel()
 ml2.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
 ml2.model.load_weights("models\\{}model.h5".format(model_name1))
 
 n1 = 7
 n2 = 11
-model_name2= "ASR7_11"
+#model_name2= "ASR7_11"
 ml1 = NeuroModel()
 ml1.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
 ml1.model.load_weights("models\\{}model.h5".format(model_name2))
@@ -339,7 +391,7 @@ plt.scatter(X0[:,0],X0[:,1],36, color = "k", marker ="_")
 
 #plt.text(1,1.1,s = "Train {:3f}".format(score_train))
 #plt.text(1,1,s = "Test {:3f}".format(score_test))
-plt.savefig("models/illustrate1_mark4.jpg")
+plt.savefig("models/illustrate1_mark5.jpg")
 
 score_test_1  = ml1.model.evaluate(X_test,Y_test,verbose =0)
 score_test_2  = ml2.model.evaluate(X_test,Y_test,verbose =0)
