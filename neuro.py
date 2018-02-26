@@ -59,12 +59,12 @@ import pandas as pd
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 30  
+EXP_NUM = 37  
 N = 2
 #N=2
 
 k = 500
-K = 35 #clusters
+K = 2 #clusters
 
 
 #dl = 0.3
@@ -78,7 +78,7 @@ np.random.seed(10)
 means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 50
+MAX_EPOCHS = 500
 
 
 
@@ -185,7 +185,7 @@ Y_test = np_utils.to_categorical(y_test,nb_classes)
 class NeuroModel:
     nb_classes = 2
     def __init__(self, activation_layer1= 'relu', activation_layer2='sigmoid',  \
-                       optimizer =  "adam", loss_func = 'categorical_crossentropy', code = "ASR_N2_Cl1_"):
+                       optimizer =  "adam", loss_func = 'categorical_crossentropy', code = "ASR_"):
         self.activation_layer1 = activation_layer1 
         self.activation_layer2 = activation_layer2
         self.optimizer = optimizer
@@ -203,7 +203,7 @@ class NeuroModel:
     def fit_model(self):
         h1 = self.model.get_config()[0]['config']['units']
         h2 = self.model.get_config()[1]['config']['units']
-        model_name = "{}{}_{}_16".format(self.code,h1,h2)
+        model_name = "{}{}_{}_N{}_cl{}".format(self.code,h1,h2,N,k )
         #не знаю, совпадает ли значение 
         checkpointer = ModelCheckpoint(filepath = "models/{}model.h5".format(model_name),monitor = "val_acc",verbose = 0,save_best_only = 1, save_weights_only = 1)
         #earlystopper = EarlyStopping(monitor ="loss", verbose = 0 , mode = "auto")
@@ -262,9 +262,9 @@ df.to_csv("exp_{}.csv".format(EXP_NUM),sep = ";")
 #%%
 
 
-#VISUALIZATION
+##VISUALIZATION
 
-#Иллюстрация для тезисов
+##Иллюстрация для тезисов
 n1 = 10
 n2 = 14
 model_name1= "ASR10_14"
@@ -339,10 +339,12 @@ plt.scatter(X0[:,0],X0[:,1],36, color = "k", marker ="_")
 
 #plt.text(1,1.1,s = "Train {:3f}".format(score_train))
 #plt.text(1,1,s = "Test {:3f}".format(score_test))
-plt.savefig("models/illustrate1_mark3.jpg")
+plt.savefig("models/illustrate1_mark4.jpg")
 
 score_test_1  = ml1.model.evaluate(X_test,Y_test,verbose =0)
 score_test_2  = ml2.model.evaluate(X_test,Y_test,verbose =0)
+
+## END VISUALISATION
 #%%
 #from mpl_toolkits.mplot3d import Axes3D
 #from matplotlib import cm
