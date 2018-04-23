@@ -63,10 +63,11 @@ import ps_data
 #X, y = make_classification(n_features=100, n_samples=1000)
 EXP_NUM = 33
 X_PS,Y_PS, CLs = ps_data.open_ps_2007()  
-X_PS =  X_PS.iloc[:,[0,1,2,3,4,5,6,7,8,9,11,12,13,14]]
+#X_PS =  X_PS.iloc[:,[0,1,2,3,4,5,6,7,8,9,11,12,13,14]]
+X_PS =  X_PS.iloc[:,[0,1,2,3,4,5,6,7,8,9,10,11]]
 N = X_PS.columns.size
-y_num_positive = [1,3,4,7,8,10,6,9]
-y_num_negative = [5,2]
+y_num_positive = [1]
+y_num_negative = [2,3,4,5,6,7,8,9,10]
 X_1 = []
 X_test_class = []
 
@@ -75,6 +76,7 @@ for j in np.arange(len(X_PS)):
         X_1.append(X_PS.iloc[j].values)
     if Y_PS.iloc[j].values in y_num_negative:
         X_test_class.append(X_PS.iloc[j].values)
+        
 #%%
 #N=2
 
@@ -156,7 +158,7 @@ X_test_class =coder.transform(X_test_class)
 
 X = []
 y = []
-class_balance = 4
+class_balance = 2
 for i in np.arange(kk):
     X.append(X_1[i])
     y.append(1)
@@ -165,7 +167,9 @@ for i in np.arange(kk):
         y.append(0)
 
 X = np.array(X)
+#X =  np.vstack((X,X))
 y = np.array(y)
+#y =  np.hstack((y,y))
 #%%
 def visualisation(path,X,y, score_train, score_test, model):
  
@@ -259,18 +263,31 @@ class NeuroModel:
                                validation_data =(X_test,Y_test), callbacks = [checkpointer] \
                                )
                 ch = 0
+                chet = 0
                 for l in np.arange(X_tr.shape[0]):
                     if Y_train[l][0] == 1:
-                        res = self.model.predict(X_tr[l].reshape(1,self.N))
-                        if res[0][0] < 0.45 :
-                            pass
-                        else:
-                            X_tr[l] = np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int)))
-                            ch +=1
-                print("change negatives:",ch)  
-                sc = self.model.evaluate(np.array(X_test_class),y_test_class)
-                score_test_otlogennie.append(sc[1])
-                print("score na otlogennych ", sc)
+#<<<<<<< HEAD
+#                        res = self.model.predict(X_tr[l].reshape(1,self.N))
+#                        if res[0][0] < 0.45 :
+#                            pass
+#                        else:
+#                            X_tr[l] = np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int)))
+#                            ch +=1
+#                print("change negatives:",ch)  
+#                sc = self.model.evaluate(np.array(X_test_class),y_test_class)
+#                score_test_otlogennie.append(sc[1])
+#                print("score na otlogennych ", sc)
+#=======
+                        if chet:
+                            res = self.model.predict(X_tr[l].reshape(1,self.N))
+                            if res[0][0] < 0.45 :
+                                pass
+                            else:
+                                X_tr[l] = np.random.uniform(low = tuple(np.zeros(self.N,int)),high = tuple(np.ones(self.N,int)))
+                                ch +=1
+                        chet = (chet + 1) % 2        
+                print("change negatives:",ch)                
+
             print("!!!Fit End")
 
 #Пока отложим критерий            
