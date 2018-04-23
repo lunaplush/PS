@@ -61,7 +61,7 @@ import ps_data
 #%%
 
 #X, y = make_classification(n_features=100, n_samples=1000)
-EXP_NUM = 33
+EXP_NUM = 34
 X_PS,Y_PS, CLs = ps_data.open_ps_2007()  
 #X_PS =  X_PS.iloc[:,[0,1,2,3,4,5,6,7,8,9,11,12,13,14]]
 X_PS =  X_PS.iloc[:,[0,1,2,3,4,5,6,7,8,9,10,11]]
@@ -94,7 +94,7 @@ for j in np.arange(len(X_PS)):
 ##means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 ##cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 5000
+MAX_EPOCHS = 5 
 
 
 
