@@ -112,7 +112,7 @@ net.addConnection(FullConnection(hiddenLayer, outLayer))
 net.sortModules()
 #net = buildNetwork(ds_train.indim, HIDDEN_NEURONS_NUM, ds_train.outdim, bias=True,outclass=SoftmaxLayer)
 # ds.indim -- количество нейронов входного слоя, равне количеству признаков
-# ds.outdim -- количество нейронов выходного слоя, равное количеству меток классов
+ # ds.outdim -- количество нейронов выходного слоя, равное количеству меток классов
 # SoftmaxLayer -- функция активации, пригодная для решения задачи многоклассовой классификации
 
 init_params = np.random.random(( len(net.params))) # Инициализируем веса сети для получения воспроизводимого результата
