@@ -78,7 +78,7 @@ np.random.seed(10)
 means =[(0.25,0.25),            (0.75,0.75),           (0.1,0.1),            (0.45,0.7),              (0.8,0.24)]
 cov =  [diag([0.1/dl,0.05/dl]), diag([0.2/dl,0.05/dl]),diag([0.2/dl,0.05/dl]), diag([0.02/dl,0.08/dl]),diag([0.02/dl,0.08/dl]) ]
   
-MAX_EPOCHS = 250
+MAX_EPOCHS = 50
 
 
 
@@ -234,7 +234,7 @@ class NeuroModel:
         self.model.add(Dense(units = hidneuro2,activation = self.activation_layer2))
         self.model.add(Dense(units = self.nb_classes,activation = "softmax"))
         self.model.compile(optimizer = self.optimizer,loss= self.loss_func, metrics=['accuracy'])                  
-    def fit_model(self, f_X_train,f_Y_train,f_X_test,f_Y_test):
+    def fit_model(self, f_X_train,f_Y_train,f_y_train,f_X_test,f_Y_test):
         h1 = self.model.get_config()[0]['config']['units']
         h2 = self.model.get_config()[1]['config']['units']
         model_name = "{}{}_{}_N{}_cl{}".format(self.code,h1,h2,N,K )
@@ -277,14 +277,17 @@ df2 = pd.DataFrame(columns = ["model", "time","acc_train", "acc_test"])
 neuros_num = [ [i,j] for i in np.arange(4,21,2) for j in np.arange(4,20,2)]
 
 #for i in np.arange(len(neuros_num)): 
-for i in np.arange(29,30):
+#for i in np.arange(29,30):
+for pp in [1]:
+    MAX_EPOCHS = 1150
+    i =  29
     try:
         del model
     except:
         pass
     model = NeuroModel()
     model.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
-    [model_name, t,acc_train, acc_test] = model.fit_model(X_train,Y_train,X_test,Y_test)
+    [model_name, t,acc_train, acc_test] = model.fit_model(X_train,Y_train,y_train,X_test,Y_test)
     s = pd.Series({"model":model_name, "time": t,"acc_train":acc_train, "acc_test":acc_test})
     pd.DataFrame(s).to_csv("models/{}.csv".format(model_name))
     df = df.append(s, ignore_index= True)
@@ -299,7 +302,7 @@ for i in np.arange(29,30):
    
     model2 = NeuroModel(code = "ASR_two_")
     model2.compile_model(dataParams.N, hidneuro1 = neuros_num[i][0], hidneuro2 = neuros_num[i][1])
-    [model_name2, t2,acc_train2, acc_test2] = model2.fit_model(X_train2,Y_train2,X_test2,Y_test2)
+    [model_name2, t2,acc_train2, acc_test2] = model2.fit_model(X_train2,Y_train2,y_train2,X_test2,Y_test2)
     s2 = pd.Series({"model":model_name2, "time": t2,"acc_train":acc_train2, "acc_test":acc_test2})
     pd.DataFrame(s).to_csv("models/{}.csv".format(model_name2))
     df2 = df2.append(s, ignore_index= True)
@@ -317,9 +320,10 @@ df.to_csv("exp_{}.csv".format(EXP_NUM),sep = ";")
 ##VISUALIZATION
 
 ##Иллюстрация для тезисов
-n1 = 10
-n2 = 14
-#model_name1= "ASR10_14"
+#n1 = 10
+#n2 = 14
+#model_name1= "ASR_10_14_N2_cl2"
+#model.model.load_weights("models\\{}model.h5".format(model_name1))
 
 #ml2 = NeuroModel()
 #ml2.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
@@ -327,10 +331,26 @@ n2 = 14
 
 n1 = 7
 n2 = 11
-#model_name2= "ASR7_11"
+#model_name2= "ASR_two_10_14_N2_cl2"
 #ml1 = NeuroModel()
 #ml1.compile_model(dataParams.N, hidneuro1 = n1, hidneuro2 = n2)
 #ml1.model.load_weights("models\\{}model.h5".format(model_name2))
+#model2.model.load_weights("models\\{}model.h5".format(model_name2))
+#%%
+X_train_arch = X_train
+X_train2_arch = X_train2
+y_train_arch = y_train
+y_train2_arch = y_train2
+#%%
+ind = np.arange(0,X_train.shape[0],2)
+X_train = X_train[ind]
+y_train = y_train[ind]
+
+ind2 = np.arange(0,X_train2.shape[0],2)
+X_train2 = X_train2[ind2]
+y_train2 = y_train2[ind2]
+
+#%%
 ml1 = model
 ml2 = model2
 
@@ -355,7 +375,8 @@ for i in np.arange(len(Z)):
 
 XZ0 = data[(res_Z_bin == 0)]
 XZ1 = data[(res_Z_bin == 1 )]
-ax1 = plt.subplot(121)
+ax1 = plt.subplot(122)
+
 plt.xlim(0.0,1.0)
 plt.ylim(0.0,1.0)
 plt.xlabel("$x_1$")
@@ -367,7 +388,7 @@ plt.scatter(XZ1[:,0],XZ1[:,1], color = "#BBBBBB", alpha = 0.3)
 plt.scatter(X1[:,0],X1[:,1],36,color = "k", marker = "+")
 plt.scatter(X0[:,0],X0[:,1],36, color = "k", marker ="_")
 
-ax2 = plt.subplot(122, sharey = ax1)
+ax2 = plt.subplot(121, sharey = ax1)
 plt.xlim(0.0,1.0)
 plt.ylim(0.0,1.0)
 plt.xlabel("$x_1$")
@@ -397,7 +418,7 @@ plt.scatter(X0_2[:,0],X0_2[:,1],36, color = "k", marker ="x")
 
 #plt.text(1,1.1,s = "Train {:3f}".format(score_train))
 #plt.text(1,1,s = "Test {:3f}".format(score_test))
-plt.savefig("models/illustrate1_mark6.jpg")
+plt.savefig("models/illustrate1_mark9.jpg")
 
 score_test_1  = ml1.model.evaluate(X_test,Y_test,verbose =0)
 score_test_2  = ml2.model.evaluate(X_test,Y_test,verbose =0)
