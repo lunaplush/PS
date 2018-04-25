@@ -1,3 +1,6 @@
+#https://bayesgroup.github.io/deepbayes-school/2018/task/description/
+# https://docs.google.com/forms/d/e/1FAIpQLSfYixuXdCT-gOX_yX4HhiH7RGtX6G2joaUHOw_eAAO5b5OtuA/viewform?edit2=2_ABaOnufP4MSHZYsYQuT15AkjbuCpfv8VL2-hTvXdfwv1nDHwPkGr7nLtNnCVtQ
+
 import os
 import torch
 import argparse
