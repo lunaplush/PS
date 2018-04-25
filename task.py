@@ -1,6 +1,10 @@
 #https://bayesgroup.github.io/deepbayes-school/2018/task/description/
 # https://docs.google.com/forms/d/e/1FAIpQLSfYixuXdCT-gOX_yX4HhiH7RGtX6G2joaUHOw_eAAO5b5OtuA/viewform?edit2=2_ABaOnufP4MSHZYsYQuT15AkjbuCpfv8VL2-hTvXdfwv1nDHwPkGr7nLtNnCVtQ
 
+
+#pip3 install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-win_amd64.whl
+#pip3 install torchvision
+
 import os
 import torch
 import argparse
