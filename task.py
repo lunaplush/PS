@@ -5,6 +5,7 @@
 #pip3 install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-win_amd64.whl
 #pip3 install torchvision
 
+# TORCH https://habr.com/post/334380/
 import os
 import torch
 import argparse
@@ -20,6 +21,9 @@ from torchvision.utils import save_image
 class AutoEncoder(nn.Module):
     def __init__(self, inp_size, hid_size):
         super(AutoEncoder, self).__init__()
+        self.lin1 = nn.Linear(inp_size,hid_size)
+        self.hidden1 = nn.Linear(hid_size,inp_size)
+        print(self.state_dict().keys())
         """
         Here you should define layers of your autoencoder
         Please note, if a layer has trainable parameters, it should be nn.Linear. 
@@ -60,6 +64,7 @@ class AutoEncoder(nn.Module):
         return self.decode(self.encode(x))
 
     def loss_function(self, recon_x, x):
+        print("/",x)
         """
         Calculates the loss function.
 
@@ -103,18 +108,18 @@ def train(model, optimizer, train_loader, test_loader):
 
 def test_work():
     print('Start test')
-    get_loader = lambda train: torch.utils.data.DataLoader(
-        datasets.MNIST('./data', train=train, download=True, transform=transforms.ToTensor()),
-        batch_size=50, shuffle=True)
-    train_loader, test_loader = get_loader(True), get_loader(False)
-    
+#    get_loader = lambda train: torch.utils.data.DataLoader(
+#        datasets.MNIST('./data', train=train, download=True, transform=transforms.ToTensor()),
+#        batch_size=50, shuffle=True)
+#    train_loader, test_loader = get_loader(True), get_loader(False)
+#    
     try:
         model = AutoEncoder(inp_size=784, hid_size=20)
         optimizer = optim.Adam(model.parameters(), lr=1e-3)
     except Exception:
         assert False, 'Error during model creation'
         return
-
+    
     try:
         model = train(model, optimizer, train_loader, test_loader)
     except Exception:
@@ -131,6 +136,15 @@ def test_work():
     assert len(layers_with_params) <= 6, 'The model must have no more than 6 layers '
     assert np.all(np.concatenate([list(p.shape) for p in model.parameters()]) <= 800), 'All hidden sizes must be less than 800'
     print('Success!🎉')
-
+get_loader = lambda train: torch.utils.data.DataLoader(
+        datasets.MNIST('./data', train=train, download=True, transform=transforms.ToTensor()),
+        batch_size=50, shuffle=True)
+train_loader, test_loader = get_loader(True), get_loader(False)
+    
 
 test_work()
+#%%
+#m = nn.Linear(20, 30)
+#input = torch.randn(128, 20)
+#output = m(input)
+#print(output.size())
