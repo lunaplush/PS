@@ -115,7 +115,7 @@ def train(model, optimizer, train_loader, test_loader):
         print('=> Test set loss: %.3f' % test_loss)
 
         n = min(data.size(0), 8)
-        print(n)
+        
         comparison = torch.cat([data.view(-1, 1, 28, 28)[:n], x_rec.view(-1, 1, 28, 28)[:n]])
         if not os.path.exists('./pics'): os.makedirs('./pics')
         save_image(comparison.data.cpu(), 'pics/reconstruction_' + str(epoch) + '.png', nrow=n)
