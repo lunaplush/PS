@@ -16,14 +16,18 @@ from torch import nn, optim
 from torch.autograd import Variable
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-
+#%%
 
 class AutoEncoder(nn.Module):
     def __init__(self, inp_size, hid_size):
         super(AutoEncoder, self).__init__()
+        
         self.lin1 = nn.Linear(inp_size,hid_size)
+        #self.tan = nn.Tanh()
         self.hidden1 = nn.Linear(hid_size,inp_size)
-        print(self.state_dict().keys())
+        
+        #print(self.state_dict().keys())
+        
         """
         Here you should define layers of your autoencoder
         Please note, if a layer has trainable parameters, it should be nn.Linear. 
@@ -37,22 +41,26 @@ class AutoEncoder(nn.Module):
         pass
 
     def encode(self, x):
+        x = nn.functional.relu(self.lin1(x))
         """
         Encodes objects to hidden representations (E: R^inp_size -> R^hid_size)
 
         :param x: inputs, Variable of shape (batch_size, inp_size)
         :return:  hidden represenation of the objects, Variable of shape (batch_size, hid_size)
         """
-        pass
+        
+        return x
 
     def decode(self, h):
+        h =  nn.functional.relu(self.hidden1(h))
         """
         Decodes objects from hidden representations (D: R^hid_size -> R^inp_size)
 
         :param h: hidden represenatations, Variable of shape (batch_size, hid_size)
         :return:  reconstructed objects, Variable of shape (batch_size, inp_size)
         """
-        pass
+    
+        return h
 
     def forward(self, x):
         """
@@ -64,7 +72,11 @@ class AutoEncoder(nn.Module):
         return self.decode(self.encode(x))
 
     def loss_function(self, recon_x, x):
-        print("/",x)
+        
+       # print("LOSS-------------------------- \n", recon_x.shape())
+        res= torch.mean((x -recon_x) ** 2)
+       
+
         """
         Calculates the loss function.
 
@@ -73,7 +85,8 @@ class AutoEncoder(nn.Module):
         :return: loss
         """
         pass
-
+        return res
+#%%
 
 def train(model, optimizer, train_loader, test_loader):
     for epoch in range(10):
@@ -82,8 +95,10 @@ def train(model, optimizer, train_loader, test_loader):
         for data, _ in train_loader:
             data = Variable(data).view(-1, 784)
             x_rec = model(data)
+            #print("x_rec",x_rec.shape, "\n")
+            #print("data",data.shape,"\n")
             loss = model.loss_function(x_rec, data)
-
+            #print("loss ",loss,"\n")
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -100,6 +115,7 @@ def train(model, optimizer, train_loader, test_loader):
         print('=> Test set loss: %.3f' % test_loss)
 
         n = min(data.size(0), 8)
+        print(n)
         comparison = torch.cat([data.view(-1, 1, 28, 28)[:n], x_rec.view(-1, 1, 28, 28)[:n]])
         if not os.path.exists('./pics'): os.makedirs('./pics')
         save_image(comparison.data.cpu(), 'pics/reconstruction_' + str(epoch) + '.png', nrow=n)
@@ -113,9 +129,11 @@ def test_work():
 #        batch_size=50, shuffle=True)
 #    train_loader, test_loader = get_loader(True), get_loader(False)
 #    
+    
     try:
         model = AutoEncoder(inp_size=784, hid_size=20)
         optimizer = optim.Adam(model.parameters(), lr=1e-3)
+        #print("params ",list(model.parameters())," \n")
     except Exception:
         assert False, 'Error during model creation'
         return
@@ -127,7 +145,7 @@ def test_work():
         return
 
     test_x = Variable(torch.randn(1, 784))    
-    rec_x, hid_x = model(test_x), model.encode(test_x)
+    rec_x, hid_x = model(test_x), model.encode(test_xp)
     submodules = dict(model.named_children())
     layers_with_params = np.unique(['.'.join(n.split('.')[:-1]) for n, _ in model.named_parameters()])
     
@@ -136,15 +154,32 @@ def test_work():
     assert len(layers_with_params) <= 6, 'The model must have no more than 6 layers '
     assert np.all(np.concatenate([list(p.shape) for p in model.parameters()]) <= 800), 'All hidden sizes must be less than 800'
     print('Success!🎉')
+    #%%
 get_loader = lambda train: torch.utils.data.DataLoader(
         datasets.MNIST('./data', train=train, download=True, transform=transforms.ToTensor()),
         batch_size=50, shuffle=True)
 train_loader, test_loader = get_loader(True), get_loader(False)
-    
-
+   
+   
+#%%
 test_work()
 #%%
-#m = nn.Linear(20, 30)
-#input = torch.randn(128, 20)
+#m = AutoEncoder(20,30)
+##m = nn.Linear(20, 30)
+#input = torch.randn(1, 20)
 #output = m(input)
 #print(output.size())
+#%%
+#import torch
+#
+#def MyNetworkForward(weights, bias, x):
+#    h1 = weights @ x + bias
+#    a1 = torch.tanh(h1)
+#
+#    return a1
+#
+#
+#y = MyNetworkForward(weights, bias, x)
+#loss = torch.mean((y - y_hat) ** 2)
+#
+#loss.backward()
