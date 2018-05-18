@@ -19,7 +19,7 @@ from sklearn.cross_validation import train_test_split,cross_val_score,Stratified
 
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix
-import os
+import os 
 import random
 import pandas as pd
 from scipy import diag,arange
